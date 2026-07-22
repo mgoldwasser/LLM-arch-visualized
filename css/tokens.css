@@ -1,0 +1,107 @@
+/* ============================================================
+   Design tokens — single source of truth for the visual system.
+   Light theme: warm paper "field journal". Dark theme: lab notebook.
+   Swap values here; every component and figure reads these vars.
+   ============================================================ */
+
+:root {
+  /* surfaces */
+  --bg: #FCFBF7;
+  --panel: #F4F2EA;
+  --panel-deep: #0E1116;      /* always-dark panels (code, figures on dark) */
+  --panel-border: rgba(30, 28, 24, 0.10);
+
+  /* ink */
+  --ink: #1E1C18;             /* headings */
+  --tx: #2B2822;              /* body text */
+  --sec: #57534A;             /* secondary text */
+  --mut: #8A857C;             /* muted / captions */
+
+  /* rules + interaction */
+  --hr: rgba(30, 28, 24, 0.14);
+  --hr-soft: rgba(30, 28, 24, 0.07);
+  --code-bg: rgba(30, 28, 24, 0.045);
+  --sel: rgba(47, 95, 168, 0.18);
+
+  /* accent + component family colors (used consistently across ALL figures):
+     acc      — links, UI accent, "current focus"
+     c-weight — learned weights (frozen at inference)      : amber
+     c-act    — activations / residual stream              : cyan-blue
+     c-attn   — attention machinery                        : violet
+     c-moe    — experts / MoE                              : teal
+     c-loss   — loss, gradients, training signal           : red-orange
+     c-train  — trainable-during-adaptation                : green
+  */
+  --acc: #2F5FA8;
+  --c-weight: #B07D2B;
+  --c-weight-soft: rgba(176, 125, 43, 0.16);
+  --c-act: #2E7DA6;
+  --c-act-soft: rgba(46, 125, 166, 0.14);
+  --c-attn: #7A4FA0;
+  --c-attn-soft: rgba(122, 79, 160, 0.14);
+  --c-moe: #1F8A70;
+  --c-moe-soft: rgba(31, 138, 112, 0.14);
+  --c-loss: #C24D2E;
+  --c-loss-soft: rgba(194, 77, 46, 0.14);
+  --c-train: #3B8A3E;
+  --c-train-soft: rgba(59, 138, 62, 0.16);
+
+  /* figure canvas (SVG backgrounds are always the deep panel for contrast) */
+  --fig-bg: #10141A;
+  --fig-grid: rgba(230, 237, 243, 0.06);
+  --fig-ink: #EDF2F7;
+  --fig-tx: #C4CCD5;
+  --fig-mut: #6B7683;
+  --fig-weight: #E0A84C;
+  --fig-act: #5AC8DC;
+  --fig-attn: #B48CE0;
+  --fig-moe: #4CC9A8;
+  --fig-loss: #F07850;
+  --fig-train: #7DD87F;
+
+  /* type */
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: "SF Mono", ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+
+  /* layout */
+  --col: 46rem;               /* prose measure */
+  --col-wide: 62rem;          /* wide figures */
+  --pad: clamp(1rem, 4vw, 2rem);
+
+  /* motion */
+  --t-fast: 160ms;
+  --t-med: 320ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.dark {
+  --bg: #0E1116;
+  --panel: #12161C;
+  --panel-border: #232B35;
+  --ink: #EDF2F7;
+  --tx: #C4CCD5;
+  --sec: #8B95A1;
+  --mut: #5B6570;
+  --hr: rgba(230, 237, 243, 0.14);
+  --hr-soft: rgba(230, 237, 243, 0.07);
+  --code-bg: rgba(230, 237, 243, 0.06);
+  --sel: rgba(90, 200, 220, 0.22);
+  --acc: #5AC8DC;
+  --c-weight: #E0A84C;
+  --c-weight-soft: rgba(224, 168, 76, 0.14);
+  --c-act: #5AC8DC;
+  --c-act-soft: rgba(90, 200, 220, 0.12);
+  --c-attn: #B48CE0;
+  --c-attn-soft: rgba(180, 140, 224, 0.13);
+  --c-moe: #4CC9A8;
+  --c-moe-soft: rgba(76, 201, 168, 0.12);
+  --c-loss: #F07850;
+  --c-loss-soft: rgba(240, 120, 80, 0.13);
+  --c-train: #7DD87F;
+  --c-train-soft: rgba(125, 216, 127, 0.13);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t-fast: 0ms; --t-med: 0ms; }
+}
