@@ -97,17 +97,17 @@ function moeSceneFigure(canvas) {
     ];
     // ghost of the dense block
     const ghost = svg('g', {},
-      svg('rect', { x: 44, y: 76, width: 122, height: 58, rx: 10, fill: 'none', stroke: PAL.weight, 'stroke-dasharray': '4 4', 'stroke-opacity': 0.5 }),
-      txt(105, 100, 'one big MLP', { size: 11, fill: PAL.weight, anchor: 'middle', opacity: 0.6 }),
-      txt(105, 118, `(dense)`, { size: 10, anchor: 'middle', opacity: 0.6 }));
-    const strike = svg('line', { x1: 48, y1: 130, x2: 162, y2: 80, stroke: PAL.loss, 'stroke-width': 1.6 });
+      svg('rect', { x: 44, y: 66, width: 122, height: 46, rx: 10, fill: 'none', stroke: PAL.weight, 'stroke-dasharray': '4 4', 'stroke-opacity': 0.5 }),
+      txt(105, 85, 'one big MLP', { size: 11, fill: PAL.weight, anchor: 'middle', opacity: 0.6 }),
+      txt(105, 101, `(dense)`, { size: 10, anchor: 'middle', opacity: 0.6 }));
+    const strike = svg('line', { x1: 48, y1: 108, x2: 162, y2: 70, stroke: PAL.loss, 'stroke-width': 1.6 });
 
     // 896-cell expert grid
     const gx = 230, gy = 64, pitch = 8;
     const cells = [];
     for (let r = 0; r < GRID_ROWS; r++) for (let c = 0; c < GRID_COLS; c++)
       cells.push(svg('rect', { x: gx + c * pitch, y: gy + r * pitch, width: pitch - 1.5, height: pitch - 1.5, rx: 1, fill: PAL.moe, 'fill-opacity': 0.16 }));
-    const gridLabel = txt(gx + (GRID_COLS * pitch) / 2, 54, `${E.routed} experts, each small`, { size: 11, fill: PAL.moe, anchor: 'middle' });
+    const gridLabel = txt(gx + (GRID_COLS * pitch) / 2, 306, `${E.routed} experts, each small`, { size: 11, fill: PAL.moe, anchor: 'middle' });
 
     // router + fan-out
     const router = svg('g', {},
@@ -127,9 +127,9 @@ function moeSceneFigure(canvas) {
 
     // routing one token (step 3)
     const tok = svg('g', {},
-      svg('rect', { x: 56, y: 96, width: 110, height: 30, rx: 7, fill: 'rgba(90,200,220,0.12)', stroke: PAL.act, 'stroke-width': 1.2 }),
-      txt(111, 116, '“autograd”', { size: 12, fill: PAL.ink, anchor: 'middle', mono: true }));
-    const tokArrow = svg('path', { d: 'M 111 128 L 111 176', stroke: PAL.act, 'stroke-width': 1.3, fill: 'none', 'marker-end': 'url(#ch5-arr)' });
+      svg('rect', { x: 56, y: 126, width: 110, height: 30, rx: 7, fill: 'rgba(90,200,220,0.12)', stroke: PAL.act, 'stroke-width': 1.2 }),
+      txt(111, 146, '“autograd”', { size: 12, fill: PAL.ink, anchor: 'middle', mono: true }));
+    const tokArrow = svg('path', { d: 'M 111 158 L 111 176', stroke: PAL.act, 'stroke-width': 1.3, fill: 'none', 'marker-end': 'url(#ch5-arr)' });
     const winR = rng(77);
     const winners = [];
     const winSet = new Set();
@@ -139,8 +139,8 @@ function moeSceneFigure(canvas) {
       winners.push(svg('rect', { x: gx + c * pitch - 1, y: gy + r * pitch - 1, width: pitch + 0.5, height: pitch + 0.5, rx: 1.5, fill: PAL.moe, stroke: '#10141A', 'stroke-width': 0.6 }));
     }
     const sharedGlow = svg('rect', { x: 530, y: gy, width: 54, height: GRID_ROWS * pitch - 1.5, rx: 8, fill: 'none', stroke: PAL.moe, 'stroke-width': 2.4 });
-    const eq = txt(W / 2, 326, `output = shared + Σ gᵢ · expertᵢ — ${E.active} of ${E.routed} fire · under 2%`, { size: 12.5, fill: PAL.ink, anchor: 'middle', mono: true });
-    const eqNote = txt(W / 2, 348, `exactly how ${si(K3.totalParams)} total parameters coexist with ~${si(K3.activeParams)} active ones`, { size: 10.5, anchor: 'middle' });
+    const eq = txt(W / 2, 340, `output = shared + Σ gᵢ · expertᵢ — ${E.active} of ${E.routed} fire · under 2%`, { size: 12.5, fill: PAL.ink, anchor: 'middle', mono: true });
+    const eqNote = txt(W / 2, 362, `exactly how ${si(K3.totalParams)} total parameters coexist with ~${si(K3.activeParams)} active ones`, { size: 10.5, anchor: 'middle' });
 
     g.append(...title, ghost, strike, ...cells, gridLabel, router, ...fan, shared,
       tok, tokArrow, ...winners, sharedGlow, eq, eqNote);
@@ -181,7 +181,7 @@ function moeSceneFigure(canvas) {
     dense.g.setAttribute('visibility', swap > 0.99 ? 'hidden' : 'visible');
     sparse.g.setAttribute('opacity', swap);
     sparse.g.setAttribute('visibility', swap < 0.01 ? 'hidden' : 'visible');
-    dense.u(clamp(norm(p, 0.01, 1 / 3 - 0.02)));
+    dense.u(clamp(norm(p, 0.005, 0.30)));
     sparse.u(clamp(norm(p, 1 / 3 + 0.01, 2 / 3)), clamp(norm(p, 2 / 3 + 0.01, 0.985)));
   };
 }
@@ -204,11 +204,11 @@ function routerWidget() {
   const poolFor = (cat) => {
     const r = rng(CAT_SEED[cat]);
     const set = new Set();
-    for (let c = 0; c < 3; c++) {
+    for (let c = 0; c < 2; c++) {
       const cx = 3 + Math.floor(r() * (GRID_COLS - 6));
       const cyy = 3 + Math.floor(r() * (GRID_ROWS - 6));
       for (let dx = -2; dx <= 2; dx++) for (let dy = -2; dy <= 2; dy++)
-        if (r() < 0.78) set.add((cyy + dy) * GRID_COLS + (cx + dx));
+        if (r() < 0.85) set.add((cyy + dy) * GRID_COLS + (cx + dx));
     }
     return [...set];
   };
@@ -220,7 +220,7 @@ function routerWidget() {
     const pool = pools[cat];
     const set = new Set();
     let guard = 0;
-    while (set.size < 11 && guard++ < 200) set.add(pool[Math.floor(r() * pool.length)]);
+    while (set.size < 12 && guard++ < 200) set.add(pool[Math.floor(r() * pool.length)]);
     while (set.size < E.active) set.add(Math.floor(r() * E.routed));
     const gates = [...set].map(() => 0.3 + r());
     const tot = gates.reduce((s, v) => s + v, 0);
@@ -291,7 +291,7 @@ function collapseFigure() {
   const yLab = txt(x0 - 6, 278, 'bar height = share of tokens routed to each expert (one layer)', { size: 10.5 });
 
   const t0Label = txt(x0, 40, 'expert traffic — starts uniform', { size: 11, fill: PAL.tx });
-  const collapseLabel = txt(W / 2, 64, 'rich get richer: traffic → gradient → better → more traffic', { size: 11.5, fill: PAL.loss, anchor: 'middle' });
+  const collapseLabel = txt(W / 2, 32, 'rich get richer: traffic → gradient → better → more traffic', { size: 11.5, fill: PAL.loss, anchor: 'middle' });
   const qbLine = svg('line', { x1: x0 - 6, y1: baseY - u, x2: x0 + N * (bw + gap), y2: baseY - u, stroke: PAL.moe, 'stroke-width': 1.2, 'stroke-dasharray': '5 4' });
   const qbLabel = txt(W / 2, 40, 'Quantile Balancing — allocation from router-score quantiles, no tuned coefficient', { size: 11.5, fill: PAL.moe, anchor: 'middle' });
 
@@ -316,7 +316,7 @@ function collapseFigure() {
       overlays[i].setAttribute('y', baseY - h);
       overlays[i].setAttribute('fill-opacity', winners.has(i) ? 0.75 * c * (1 - b) : 0);
     }
-    t0Label.setAttribute('opacity', (1 - seg(p, 0.16, 0.3)));
+    t0Label.setAttribute('opacity', (1 - seg(p, 0.12, 0.2)));
     collapseLabel.setAttribute('opacity', c * (1 - b));
     qbLine.setAttribute('opacity', b);
     qbLabel.setAttribute('opacity', b);
@@ -333,6 +333,7 @@ export function render({ id, num, title }) {
     createScene({
       id: 'moe-swap',
       figure: moeSceneFigure,
+      stepVh: 95,
       steps: [
         { n: 'STEP 1 / 3 — THE DENSE BLOCK', html: `<p>First, the dense block being replaced. A modern MLP sublayer is three matrices in a gated arrangement (SwiGLU in most models; K3 uses a variant called SiTU): an up projection and a gate projection expand the token&rsquo;s vector into a wider space, the gate modulates the up path elementwise, and a down projection returns to d_model. Simple — and enormous. Across the stack, these blocks dwarf everything else.</p>` },
         { n: 'STEP 2 / 3 — THE DILEMMA', html: `<p>That creates a dilemma. Empirically, what a model can <em>know</em> tracks total parameters, but what each token <em>costs</em> tracks the parameters actually multiplied per token. A dense model buys knowledge and pays for it on every single token. Mixture of experts decouples the two: replace each layer&rsquo;s one large MLP with many small ones — <strong>experts</strong> — plus a <strong>router</strong> that picks a handful per token.</p>` },
