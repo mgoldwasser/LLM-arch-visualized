@@ -2,6 +2,7 @@
    and every chapter from the registry, in order. */
 
 import { CHAPTERS } from './registry.js';
+import { EXTENSIONS } from './extensions/registry.js';
 import { el } from './core/dom.js';
 import { onScrollY, refresh } from './core/scroll.js';
 
@@ -71,11 +72,26 @@ export function buildToc() {
 
 /* ---- mount chapters ------------------------------------------------------ */
 
+async function mountExtensions(c, chapterNode) {
+  for (const ext of EXTENSIONS.filter((e) => e.target === c.id)) {
+    try {
+      const mod = await ext.load();
+      const node = mod.render({ target: c.id, num: c.num, title: c.title });
+      const at = ext.anchor && chapterNode.querySelector(ext.anchor);
+      if (at) at.after(node);
+      else chapterNode.append(node);
+    } catch (err) {
+      console.error(`Extension for "${c.id}" failed to render:`, err);
+    }
+  }
+}
+
 for (const c of CHAPTERS) {
   try {
     const mod = await c.load();
     const node = mod.render({ id: c.id, num: c.num, title: c.title });
     article.append(node);
+    await mountExtensions(c, node);
     if (c.id === 'hero') article.append(buildToc());
   } catch (err) {
     console.error(`Chapter "${c.id}" failed to render:`, err);

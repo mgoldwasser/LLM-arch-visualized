@@ -24,6 +24,46 @@ That's it. `main.js` mounts chapters in registry order, builds the TOC and the
 minimap dots, and isolates failures (a broken chapter renders an inline error
 instead of blanking the page).
 
+## Extend a chapter WITHOUT editing it (extensions)
+
+Content can be inserted into an existing chapter from a separate file — no
+rewrite of the chapter module:
+
+1. Create `js/extensions/<name>.js` exporting `render({ target, num, title })
+   → Node` (use `frag(...)` for multiple top-level nodes).
+2. Register it in `js/extensions/registry.js`:
+
+   ```js
+   { target: 'attention', load: () => import('./my-extension.js') },
+   // optional: anchor: '.some-selector' → inserts after that element
+   // inside the chapter; omitted → appends at the chapter's end
+   ```
+
+Extensions mount after their target chapter renders, in registry order, and a
+failing extension is logged and skipped without harming its chapter. The full
+component library and scene engine are available inside extensions.
+
+### The frontier section (standing convention)
+
+Every chapter carries a `frontier-<id>` extension: the research appendix
+answering (1) *what makes this component inefficient or knowledge-scarce?*
+and (2) *what is the cutting edge doing about it — and what might?* Build it
+from the dedicated components so all chapters match:
+
+```js
+frontier(num,
+  bottleneck('<p>…the inefficiency analysis…</p>'),
+  researchItem('FlashAttention-3', '2024', 'deployed', '<p>…</p>'),
+  researchItem('Name', 'year', 'research' | 'deployed' | 'contested', '…'),
+  novelIdea('Title', '<p>…clearly-speculative proposal…</p>'),
+)
+```
+
+Rules of the frontier: `researchItem` is for real, citable work only — name
+the paper/system and year, and if unsure of a detail, generalize rather than
+invent. Anything original or unproven goes in `novelIdea`, which is visibly
+badged *speculative · our proposal*. Figures and scenes are welcome here too.
+
 ## Building blocks (`js/core/components.js`)
 
 | Component | Use |

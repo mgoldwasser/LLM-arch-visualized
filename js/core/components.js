@@ -77,6 +77,54 @@ export function specTable(title, sub, rows) {
         el('span', { class: 'v', html: v }))))));
 }
 
+/* ---- frontier section family ---------------------------------------------
+   The standard end-of-chapter research section, mounted via js/extensions/.
+   Structure every chapter the same way:
+
+     frontier(num,
+       bottleneck('…why this component is inefficient / knowledge-scarce…'),
+       researchItem('FlashAttention-3', '2024', 'deployed', '…'),
+       researchItem('…', '2025', 'research', '…'),
+       novelIdea('…title…', '…clearly-speculative proposal…'),
+     )
+*/
+
+/* Wrapper band. num is the chapter number, used in the header. */
+export function frontier(num, ...children) {
+  return el('div', { class: 'frontier wide' },
+    reveal(el('header', { class: 'fr-head measure' },
+      el('span', { class: 'fr-badge' }, 'frontier'),
+      el('span', { class: 'fr-title' }, `${num} · Where this breaks — and what comes next`),
+      el('span', { class: 'fr-sub' }, 'bottleneck · current research · speculative directions'))),
+    ...children);
+}
+
+/* The inefficiency / knowledge-scarcity analysis. */
+export function bottleneck(html) {
+  return reveal(el('div', { class: 'fr-card fr-bottleneck measure' },
+    el('div', { class: 'fr-card-k' }, 'The bottleneck'),
+    el('div', { class: 'fr-card-b', html })));
+}
+
+/* One line of real research. status: 'deployed' | 'research' | 'contested' */
+export function researchItem(name, year, status, html) {
+  return reveal(el('div', { class: 'fr-card fr-research measure' },
+    el('div', { class: 'fr-card-k' },
+      el('span', { class: 'fr-name' }, name),
+      el('span', { class: 'fr-year' }, year),
+      el('span', { class: `fr-status fr-${status}` }, status)),
+    el('div', { class: 'fr-card-b', html })));
+}
+
+/* A clearly-labeled speculative proposal (ours, not the literature's). */
+export function novelIdea(title, html) {
+  return reveal(el('div', { class: 'fr-card fr-novel measure' },
+    el('div', { class: 'fr-card-k' },
+      el('span', { class: 'fr-name' }, title),
+      el('span', { class: 'fr-status fr-speculative' }, 'speculative · our proposal')),
+    el('div', { class: 'fr-card-b', html })));
+}
+
 /* Read a figure-palette color from CSS custom properties. */
 export function figColor(name) {
   return getComputedStyle(document.body).getPropertyValue(`--fig-${name}`).trim()
