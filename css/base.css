@@ -1,0 +1,161 @@
+/* ============================================================
+   Base — reset, typography, article layout, chrome.
+   ============================================================ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--serif);
+  font-size: clamp(1.02rem, 0.4vw + 0.95rem, 1.14rem);
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--t-med) ease, color var(--t-med) ease;
+}
+
+::selection { background: var(--sel); }
+
+a { color: var(--acc); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+h1, h2, h3, h4 { color: var(--ink); font-family: var(--serif); line-height: 1.18; }
+
+code, pre, .mono { font-family: var(--mono); }
+code {
+  background: var(--code-bg);
+  padding: 0.08em 0.34em;
+  border-radius: 4px;
+  font-size: 0.86em;
+}
+
+strong { color: var(--ink); }
+em { font-style: italic; }
+
+hr { border: 0; border-top: 1px solid var(--hr-soft); margin: 3rem auto; max-width: var(--col); }
+
+input[type=range] { accent-color: var(--acc); }
+button { font-family: var(--sans); }
+summary { cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+
+/* ---- article skeleton ---------------------------------------------------- */
+
+.article { padding: 0 var(--pad) 6rem; }
+
+.measure   { max-width: var(--col);      margin-left: auto; margin-right: auto; }
+.wide      { max-width: var(--col-wide); margin-left: auto; margin-right: auto; }
+
+.chapter { margin-top: 5.5rem; scroll-margin-top: 4rem; }
+
+/* ---- top chrome ---------------------------------------------------------- */
+
+.chrome {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem var(--pad);
+  pointer-events: none;
+}
+.chrome > * { pointer-events: auto; }
+
+.chrome-title {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mut);
+  opacity: 0;
+  transition: opacity var(--t-med) ease;
+}
+body.scrolled .chrome-title { opacity: 1; }
+
+.chrome-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+.chrome button {
+  border: 1px solid var(--hr);
+  background: var(--bg);
+  color: var(--sec);
+  border-radius: 999px;
+  padding: 0.32rem 0.8rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.chrome button:hover { color: var(--ink); border-color: var(--sec); }
+
+.progress-rail {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  z-index: 60;
+  background: transparent;
+}
+.progress-rail .bar {
+  height: 100%;
+  width: 100%;
+  background: var(--acc);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+
+/* ---- table of contents --------------------------------------------------- */
+
+.toc { margin: 3.5rem auto; }
+.toc-label {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--mut);
+  margin-bottom: 1rem;
+}
+.toc ol {
+  list-style: none;
+  margin: 0; padding: 0;
+  columns: 2;
+  column-gap: 3rem;
+}
+@media (max-width: 40rem) { .toc ol { columns: 1; } }
+.toc li { break-inside: avoid; }
+.toc a {
+  display: flex;
+  gap: 0.8rem;
+  align-items: baseline;
+  padding: 0.42rem 0;
+  border-bottom: 1px solid var(--hr-soft);
+  color: var(--tx);
+}
+.toc a:hover { color: var(--acc); text-decoration: none; }
+.toc .n { font-family: var(--mono); font-size: 0.72rem; color: var(--mut); }
+
+/* mini-toc dots on the left edge (desktop only) */
+.minimap {
+  position: fixed;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+@media (max-width: 72rem) { .minimap { display: none; } }
+.minimap a {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--hr);
+  transition: background var(--t-fast) ease, transform var(--t-fast) ease;
+}
+.minimap a:hover { background: var(--sec); transform: scale(1.5); }
+.minimap a.active { background: var(--acc); transform: scale(1.35); }
+
+/* ---- loading / no-js ----------------------------------------------------- */
+
+noscript .measure { padding: 6rem 0; }
