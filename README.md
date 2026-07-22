@@ -31,13 +31,21 @@ repo as-is.
 | 01 | Next-token prediction | The autoregressive loop, animated end-to-end |
 | 02 | Tokens & embeddings | BPE merges collapsing "unbelievability" into 3 tokens |
 | 03 | The residual stream | One transformer layer assembling itself; a layer's weights drawn to scale |
+| 03B | The component catalog | Pre/post-norm gradient flow, activation-function explorer, the block 2017 vs 2026 |
 | 04 | Attention | The five stages, a hand-checkable 4-token worked example, "who is *it*?" widget |
+| 04B | Attention at scale | FlashAttention tiling, MLA latent math, the delta rule behind KDA |
 | 05 | Mixture of experts | Click a token, watch 16 of 896 experts fire |
 | 06 | Parameter arithmetic | Build-your-own-trillion-parameter-model calculator |
 | 07 | Pretraining | The training loop, the 6·N·D economics, four axes of parallelism |
 | 08 | Post-training | SFT → RLHF → RLVR pipeline; GRPO group sampling |
 | 09 | Inference | Prefill vs decode, KV-cache growth, live temperature/top-p sampler |
 | 10 | Adaptation | Full fine-tune → LoRA → TinyLoRA's 13 parameters |
+| 11 | Multimodality | Patchify widget, CLIP → adapter training recipe, audio/video token budgets |
+
+Every chapter ends with a **Frontier** section — what makes that component
+inefficient or knowledge-scarce, the cutting-edge research attacking it
+(with deployed / research / contested status), and a clearly-badged
+speculative proposal.
 
 ## Architecture
 
@@ -58,6 +66,9 @@ js/
     mathtools.js      softmax, matmul, real attention numerics
     components.js     chapter building blocks (prose, terms, figures, widgets)
   chapters/           one ES module per chapter — self-contained
+  extensions/         content inserted INTO chapters without editing them
+                      (registry.js + one module per insertion; every chapter's
+                      "Frontier" research section lives here)
 data/
   k3.js               the Kimi K3 spec sheet; single source of truth
 docs/
