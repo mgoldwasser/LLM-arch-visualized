@@ -150,7 +150,9 @@
   color: var(--sec);
 }
 .math-aside .body p { margin: 0 0 0.9rem; }
-.math-aside .eq {
+/* Display equation. Lives inside .math-aside most of the time, but is a
+   standalone class so prose and figures can use it too. */
+.eq {
   font-family: var(--mono);
   font-size: 0.86em;
   color: var(--ink);
@@ -266,6 +268,9 @@ body.dark .widget .w-badge { color: #0E1116; }
   color: var(--fig-mut);
   margin-top: 0.25rem;
 }
+/* Opt out of the uppercasing. Required for any label containing Greek or
+   math: text-transform maps η → Η (capital Eta), which reads as a Latin H. */
+.w-body .stat-grid .sg-k.raw { text-transform: none; letter-spacing: 0.04em; }
 
 /* ---- scroll scene (sticky figure + step prose) --------------------------- */
 

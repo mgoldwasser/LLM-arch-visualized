@@ -1,8 +1,10 @@
-/* Frontier — chapter 05 (mixture of experts).
+/* Frontier — the `moe` chapter (mixture of experts).
    The distributed-systems tax behind sparse capacity, what the field is
    doing about it, and one speculative direction of our own. */
 
-import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { frontier, bottleneck, researchItem, novelIdea, chRef } from '../core/components.js';
+import { si } from '../core/anim.js';
+import { K3 } from '../../data/k3.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -19,7 +21,7 @@ export function render({ num }) {
       improves, so early routing accidents can freeze into permanent policy — a bandit
       exploration problem that top-k gating never explicitly solves. And serving inverts the
       bargain: each token touches ~2% of the parameters, but <em>which</em> 2% is unknown until
-      the router fires, so all 2.8T must sit resident in fast memory. Memory capacity, not
+      the router fires, so all ${si(K3.totalParams)} must sit resident in fast memory. Memory capacity, not
       compute, sizes the cluster — that is what "supernodes of 64+ accelerators" is actually
       paying for.</p>`),
 
@@ -29,8 +31,8 @@ export function render({ num }) {
       parameter budget selects from vastly more expert subsets), and add shared experts that
       process every token unconditionally, absorbing the common patterns so routed experts stop
       duplicating them. Introduced in DeepSeekMoE, carried through V2/V3 into production, and
-      now the default shape of frontier MoE — K3's 896-routed-plus-1-shared layout is this
-      recipe at larger scale.</p>`),
+      now the default shape of frontier MoE — K3's ${K3.experts.routed}-routed-plus-${K3.experts.shared}-shared
+      layout is this recipe at larger scale.</p>`),
     researchItem('Auxiliary-loss-free balancing', '2024', 'deployed', `
       <p>The classic fix for router collapse — an auxiliary balancing loss — injects a gradient
       that actively fights routing quality, tuned by a coefficient that is wrong in both
@@ -44,7 +46,7 @@ export function render({ num }) {
       single-neuron-scale experts selected by product-key retrieval — the query is split so that
       scoring n experts costs O(√n), making million-way routing tractable. Fine-grained scaling
       laws favor exactly this regime (many small experts beat few large ones at fixed active
-      compute), and it blurs into Meta's related memory-layer work (chapter 06's frontier).
+      compute), and it blurs into Meta's related memory-layer work (${chRef('assembly')}'s frontier).
       Unproven at frontier scale, and the retrieval structure adds its own serving complexity —
       but it suggests today's hundreds-of-experts designs sit far from the granularity optimum.</p>`),
     researchItem('Expert offloading & caching', '2023', 'research', `

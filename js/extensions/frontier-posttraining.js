@@ -1,4 +1,4 @@
-/* Frontier — chapter 08 (post-training).
+/* Frontier — the `posttraining` chapter (post-training).
    The reward is the weakest link — how the field is shoring it up,
    and one speculative direction of our own. */
 

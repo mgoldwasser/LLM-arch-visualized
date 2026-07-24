@@ -1,8 +1,8 @@
-/* Frontier — chapter 04 (the attention mechanism).
+/* Frontier — the `attention` chapter (the attention mechanism).
    What makes attention itself inefficient, what the field is doing about it,
    and one speculative direction of our own. */
 
-import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { frontier, bottleneck, researchItem, novelIdea, chRef } from '../core/components.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -30,7 +30,7 @@ export function render({ num }) {
     researchItem('MoBA — Mixture of Block Attention', '2025', 'deployed', `
       <p>From Moonshot — the same lab as our specimen. Context is cut into blocks and each query
       routes, MoE-style, to the top-k most relevant blocks instead of attending everywhere:
-      the router is the same learned-gating idea as chapter 05, applied to <em>where to look</em>
+      the router is the same learned-gating idea as ${chRef('moe')}, applied to <em>where to look</em>
       rather than <em>which expert to run</em>. Falls back to full attention per-layer when
       needed, and Moonshot reports it serving Kimi&rsquo;s long-context traffic in production.</p>`),
     researchItem('Mamba-2 and the SSM–attention duality', '2024', 'research', `

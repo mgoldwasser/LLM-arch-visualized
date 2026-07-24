@@ -1,8 +1,23 @@
 /* Shared authoring components — every chapter builds its page from these,
    so all chapters stay visually and structurally consistent. */
 
-import { el } from './dom.js';
+import { el, svg } from './dom.js';
 import { reveal } from './scroll.js';
+import { claimFig } from './numbering.js';
+
+/* Cross-reference helpers, re-exported so chapters have one import site.
+   Never hard-code a chapter or figure number — see docs/AUTHORING.md. */
+export { chRef, figRef, claimFig, chNum, chNumShort, chTitle } from './numbering.js';
+
+/* SVG text on the dark figure canvas, with the palette's defaults.
+   txt(24, 30, 'label', { size: 12, fill: PAL.ink, anchor: 'middle', mono: true }) */
+export function txt(x, y, s, { size = 11, fill = PAL.mut, anchor = 'start', mono = false, opacity } = {}) {
+  return svg('text', {
+    x, y, fill, 'text-anchor': anchor, 'font-size': size,
+    'font-family': mono ? 'monospace' : 'sans-serif',
+    ...(opacity != null ? { opacity } : {}),
+  }, s);
+}
 
 /* Chapter section wrapper: <section class="chapter" id=…> */
 export function chapter(id, ...children) {
@@ -41,9 +56,26 @@ export function mathAside(title, bodyHtml) {
     el('div', { class: 'body', html: bodyHtml })));
 }
 
-/* Figure with dark canvas + caption. content is a node (usually <svg>). */
-export function figure(figNum, captionHtml, content, { wide = false, bare = false } = {}) {
-  return reveal(el('figure', { class: `fig ${wide ? 'wide' : 'measure'}`, style: { margin: '2.2rem auto' } },
+/* Figure with dark canvas + caption. content is a node (usually <svg>).
+
+   The figure NUMBER IS NOT PASSED IN — it is claimed automatically, in call
+   order, from the chapter currently rendering. Pass `key` to make the figure
+   referenceable from prose:  figure('caption…', svgNode, { key: 'variants' })
+   then elsewhere:            figRef('attention', 'variants')  → 'Fig. 9.5'
+
+   Legacy 4-argument form — figure('9.5', caption, content, opts) — is still
+   accepted during migration; the number given is ignored and auto-assigned. */
+export function figure(a, b, c, d) {
+  const legacy = typeof b === 'string';
+  const captionHtml = legacy ? b : a;
+  const content = legacy ? c : b;
+  const { wide = false, bare = false, key } = (legacy ? d : c) || {};
+  const figNum = claimFig(key);
+  return reveal(el('figure', {
+    class: `fig ${wide ? 'wide' : 'measure'}`,
+    id: key ? `fig-${key}` : null,
+    style: { margin: '2.2rem auto' },
+  },
     bare ? content : el('div', { class: 'fig-canvas' }, content),
     el('figcaption', {},
       el('span', { class: 'fig-n' }, `Fig. ${figNum} — `),

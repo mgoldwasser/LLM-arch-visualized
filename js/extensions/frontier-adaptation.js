@@ -1,8 +1,8 @@
-/* Frontier — chapter 10 (adaptation).
+/* Frontier — the `adaptation` chapter.
    Adaptation is still alchemy — the shrinking-update trendline, its missing
    theory, and one speculative direction of our own. */
 
-import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { frontier, bottleneck, researchItem, novelIdea, chRef } from '../core/components.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -60,7 +60,7 @@ export function render({ num }) {
       behaves as if the model had read the whole thing — then load it at inference like a
       cartridge, at a fraction of the memory of the raw-context cache. Adaptation becomes an
       artifact you swap in, with zero forgetting, instant rollback, and composition by
-      concatenation. Open questions: cartridges compete with chapter 09's KV memory economics,
+      concatenation. Open questions: cartridges compete with ${chRef('inference')}'s KV memory economics,
       offline distillation cost is nontrivial, and skill-like (rather than knowledge-like)
       deltas may not be expressible as cache contents at all.</p>`),
     researchItem('Continual learning at scale: replay & parameter isolation', '2023–25', 'contested', `

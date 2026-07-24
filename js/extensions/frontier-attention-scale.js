@@ -1,8 +1,8 @@
-/* Frontier — chapter 04B (attention at scale / the memory wall).
+/* Frontier — the `attention-scale` sub-chapter (long context / the memory wall).
    Where the long-context program itself is stuck, what the field is doing,
    and one speculative direction of our own. */
 
-import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { frontier, bottleneck, researchItem, novelIdea, chRef } from '../core/components.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -36,7 +36,7 @@ export function render({ num }) {
       serving stacks; the honest caveat is that eviction is a bet that future queries resemble
       past ones, and adversarial &ldquo;ask about the evicted token&rdquo; cases lose.</p>`),
     researchItem('Prefill/decode disaggregation', '2024', 'deployed', `
-      <p>The systems answer to chapter 09&rsquo;s two regimes: since prefill is compute-bound and
+      <p>The systems answer to ${chRef('inference')}&rsquo;s two regimes: since prefill is compute-bound and
       decode is bandwidth-bound, run them on <em>separate</em> machines sized differently, and
       ship the KV cache between them over the interconnect. DistServe and Splitwise published
       the pattern; Moonshot&rsquo;s own Mooncake — the KV-cache-centric stack serving Kimi in

@@ -1,8 +1,8 @@
-/* Frontier — chapter 11 (beyond text).
+/* Frontier — the `multimodal` chapter (beyond text).
    Why today's multimodality is expensive and shallow, what the field is
    doing about it, and one speculative direction of our own. */
 
-import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { frontier, bottleneck, researchItem, novelIdea, chRef } from '../core/components.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -55,7 +55,7 @@ export function render({ num }) {
       whether video prediction is the "missing objective" or a detour is genuinely contested.</p>`),
 
     novelIdea('Content-adaptive token budgets: a saliency router for perception', `
-      <p>Chapter 05's lesson was that uniform compute per token is wasteful, and routing fixed it.
+      <p>${chRef('moe', { cap: true })}'s lesson was that uniform compute per token is wasteful, and routing fixed it.
       Perception has the same disease: a patch of blank wallpaper and a patch of dense formula
       each cost one token. The proposal: make the <em>image-side token budget</em> a routing
       decision. A small learned saliency router scores each region of the encoder's feature map,
@@ -67,7 +67,7 @@ export function render({ num }) {
       starving regions that only matter for rare downstream questions ("what does the fine print
       say?"); training instability from the budget term fighting the task term, as in early MoE
       routers; and a subtle evaluation trap — adaptive budgets make per-image cost unpredictable,
-      which serving stacks (chapter 09's batching) actively dislike. A cheap first experiment:
+      which serving stacks (${chRef('inference')}'s batching) actively dislike. A cheap first experiment:
       freeze everything, train only the router on OCR-heavy vs. photo-heavy mixtures, and check
       whether allocation entropy tracks human saliency maps at all.</p>`),
   );

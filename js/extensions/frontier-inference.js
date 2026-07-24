@@ -1,8 +1,9 @@
-/* Frontier — chapter 09 (inference).
+/* Frontier — the `inference` chapter.
    Decode as a bandwidth ritual — how serving research feeds the idle
    arithmetic units, and one speculative direction of our own. */
 
-import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { frontier, bottleneck, researchItem, novelIdea, chRef } from '../core/components.js';
+import { K3 } from '../../data/k3.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -23,7 +24,7 @@ export function render({ num }) {
       of thought.</p>`),
 
     researchItem('Self-drafting speculative decoding: Medusa, EAGLE', '2024', 'deployed', `
-      <p>Chapter 01's frontier introduced the basic drafter-verifier trick; the deployed
+      <p>${chRef('objective', { cap: true })}'s frontier introduced the basic drafter-verifier trick; the deployed
       state-of-the-art internalizes it. Medusa (2024) bolts extra decoding heads onto the model
       itself; EAGLE (2024) drafts in the model's own feature space — predicting the next hidden
       state, from which cheap token candidates follow — and expands a <em>tree</em> of drafts
@@ -56,10 +57,10 @@ export function render({ num }) {
       KV quantization (KIVI-style 2-4 bit, now common in serving stacks) is the deployed end of
       the same push. The honest caveat: eviction bets that past unimportance predicts future
       unimportance, and needle-in-a-haystack retrieval is exactly where that bet fails — which is
-      why architectural fixes from chapter 04 (MLA's latent, KDA's constant state) compress
+      why architectural fixes from ${chRef('attention')} (MLA's latent, KDA's constant state) compress
       <em>losslessly by construction</em> and are eating this problem from below.</p>`),
     researchItem('Diffusion & parallel decoding', '2025', 'research', `
-      <p>The same escape hatch chapter 01's frontier flagged for the objective is also an escape
+      <p>The same escape hatch ${chRef('objective')}'s frontier flagged for the objective is also an escape
       from the decode ritual: a diffusion LM (Gemini Diffusion, Mercury, LLaDA) refines many
       positions per forward pass, so each streaming of the weights buys tens of tokens of
       progress rather than one — reported thousands of tokens per second on commodity-class
@@ -70,7 +71,7 @@ export function render({ num }) {
       the only entry here that removes the bottleneck rather than amortizing it.</p>`),
 
     novelIdea('Expert-affinity batching: schedule the batch to reuse the weights', `
-      <p>In a 896-expert MoE like K3, each decode step streams only the 16 experts a token
+      <p>In an ${K3.experts.routed}-expert MoE like ${K3.name}, each decode step streams only the ${K3.experts.active} experts a token
       routes to — but a mixed batch routes to nearly all of them, re-inflating the bandwidth
       bill that sparsity was supposed to cut. Proposal: make the scheduler router-aware. Keep a
       cheap online sketch of each active sequence's recent expert-usage histogram (domain and
@@ -85,6 +86,6 @@ export function render({ num }) {
       for peers that never arrive, adding exactly the tail latency batching already taxes;
       replica-level expert specialization concentrates load and creates hotspots the load
       balancer must fight; and any scheduler that <em>prefers</em> some routings risks a feedback
-      loop with chapter 05's load-balancing losses if its pressure ever leaks into training.</p>`),
+      loop with ${chRef('moe')}'s load-balancing losses if its pressure ever leaks into training.</p>`),
   );
 }

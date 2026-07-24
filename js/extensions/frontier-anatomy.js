@@ -1,8 +1,8 @@
-/* Frontier — chapter 03B (the component catalog).
+/* Frontier — the `anatomy` sub-chapter (the component catalog).
    Why architecture design is knowledge-scarce at frontier scale, what the
    field does about it, and one speculative direction of our own. */
 
-import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { frontier, bottleneck, researchItem, novelIdea, figRef } from '../core/components.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -70,7 +70,7 @@ export function render({ num }) {
       components can shadow each other, the gates themselves perturb the optimization they are
       measuring, and pairwise interactions stay invisible to marginal scores (a factorial dropout
       scheme fights this at the cost of variance). At minimum it would replace folklore with
-      per-run evidence — a continuously updated deletion list like Fig. 3B.2, generated as a
+      per-run evidence — a continuously updated version of ${figRef('anatomy', 'deletions')}, generated as a
       byproduct of training. Speculative: nobody has shown the gates stay calibrated at frontier
       scale, and the post-norm story is a warning that some components matter only through their
       interactions.</p>`),

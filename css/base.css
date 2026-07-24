@@ -51,6 +51,15 @@ summary::-webkit-details-marker { display: none; }
 
 .chapter { margin-top: 5.5rem; scroll-margin-top: 4rem; }
 
+/* Not yet mounted — reserves rough height so the scrollbar doesn't lurch as
+   chapters load in. Replaced wholesale by the rendered section. */
+.chapter-pending { min-height: 70vh; }
+
+/* Cross-reference to another chapter or figure (js/core/numbering.js). */
+.xref { color: var(--acc); white-space: nowrap; }
+a.xref { text-decoration: none; border-bottom: 1px solid var(--hr); }
+a.xref:hover { text-decoration: none; border-bottom-color: var(--acc); }
+
 /* ---- top chrome ---------------------------------------------------------- */
 
 .chrome {
@@ -124,6 +133,16 @@ body.scrolled .chrome-title { opacity: 1; }
 }
 @media (max-width: 40rem) { .toc ol { columns: 1; } }
 .toc li { break-inside: avoid; }
+.toc .toc-part {
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acc);
+  margin: 1.1rem 0 0.3rem;
+  padding-bottom: 0.2rem;
+}
+.toc .toc-part:first-child { margin-top: 0; }
 .toc a {
   display: flex;
   gap: 0.8rem;

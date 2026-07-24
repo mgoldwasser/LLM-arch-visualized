@@ -1,12 +1,12 @@
 # Authoring guide — adding and editing chapters
 
-The site is a zero-dependency, zero-build static site. Every chapter is one ES
-module; the table of contents *is* the registry array. This document is the
-complete contract for writing a chapter.
+The site is a zero-dependency, zero-build static site. Every chapter is a
+directory of ES modules; the table of contents *is* the registry array. This
+document is the complete contract for writing a chapter.
 
 ## Add a chapter in two steps
 
-1. Create `js/chapters/<nn>-<slug>.js` exporting a single function:
+1. Create `js/chapters/<slug>/index.js` exporting a single function:
 
    ```js
    export function render({ id, num, title }) {
@@ -14,22 +14,79 @@ complete contract for writing a chapter.
    }
    ```
 
-2. Add one line to `js/registry.js`:
+   `render()` may be `async` if the chapter wants to `import()` something heavy.
+
+2. Add one line to `js/registry.js`, in the position you want it read:
 
    ```js
-   { id: 'myslug', num: '11', toc: true, title: 'My chapter', load: () => import('./chapters/11-myslug.js') },
+   { id: 'myslug', part: 'machine', title: 'My chapter', load: () => import('./chapters/myslug/index.js') },
    ```
 
-That's it. `main.js` mounts chapters in registry order, builds the TOC and the
-minimap dots, and isolates failures (a broken chapter renders an inline error
-instead of blanking the page).
+That's it. **Do not write a chapter number anywhere.** `main.js` mounts
+chapters in registry order, derives every number from that order, builds the
+TOC and the minimap, lazily loads each chapter as the reader approaches it,
+and isolates failures (a broken chapter renders an inline error instead of
+blanking the page).
+
+Registry fields: `id` (stable slug — the DOM id, the anchor, and the
+cross-reference key), `title`, `part` (see `PARTS`), `load`, plus optional
+`sub: true` (numbers as `08B` off the previous chapter) and
+`kind: 'front' | 'back'` (unnumbered, kept out of the TOC).
+
+## Numbering is programmatic — never type a number
+
+`js/core/numbering.js` derives everything from registry order. Inserting or
+reordering a chapter renumbers the book *and every reference to it*
+automatically. This is the one rule with no exceptions.
+
+| Call | Gives |
+|---|---|
+| `figure(captionHtml, node, opts)` | claims the next figure number in this chapter, in call order |
+| `claimFig('key')` | reserves the next number for a scene whose caption sits in a later `prose()` |
+| `chRef('attention')` | `chapter 09`, as a link |
+| `chRef('moe', { word: 'ch.' })` | `ch. 10` |
+| `chRef('attention', { cap: true })` | `Chapter 09` |
+| `figRef('attention', 'variants')` | `Fig. 9.5`, resolved after render |
+
+Pass `{ key: 'variants' }` to `figure()` to make it referenceable. Because
+prose is built before later figures exist, `figRef()` emits a placeholder that
+`main.js` resolves once the target chapter has mounted — so forward references
+and cross-chapter references both work.
+
+**Statements in `render()` must appear in visual order**, since figure numbers
+are claimed in call order. If you build a figure into a variable before the
+`chapter(...)` call, keep those statements in page order too.
+
+In prose — which is raw HTML strings — use backtick templates and interpolate:
+
+```js
+prose(`Attention is the only place tokens interact (${chRef('attention')}),
+       and ${figRef('attention', 'variants')} counts what it costs to serve.`)
+```
+
+## One directory per chapter, one file per figure
+
+```
+js/chapters/attention/
+  index.js               the chapter spine: render(), prose, terms, math asides
+  shared.js              helpers used by more than one part file
+  scene-five-stages.js   one export: the sticky scene's figure()
+  fig-shapes.js          one export per figure
+  widget-coreference.js  one export per widget
+```
+
+Keep files under ~250 lines; `index.js` should read as an outline of the
+chapter. Import depth from inside `js/chapters/<slug>/` is `../../core/…` and
+`../../../data/k3.js`.
+
+Chapters are dynamically imported, and mounted only as the reader approaches
+them — so a chapter's cost is paid only if it is actually read.
 
 ## Extend a chapter WITHOUT editing it (extensions)
 
-Content can be inserted into an existing chapter from a separate file — no
-rewrite of the chapter module:
+Content can be inserted into an existing chapter from a separate file:
 
-1. Create `js/extensions/<name>.js` exporting `render({ target, num, title })
+1. Create `js/extensions/<name>.js` exporting `render({ id, num, title })
    → Node` (use `frag(...)` for multiple top-level nodes).
 2. Register it in `js/extensions/registry.js`:
 
@@ -41,14 +98,15 @@ rewrite of the chapter module:
 
 Extensions mount after their target chapter renders, in registry order, and a
 failing extension is logged and skipped without harming its chapter. The full
-component library and scene engine are available inside extensions.
+component library and scene engine are available inside extensions. Import
+depth from `js/extensions/` is `../core/…` and `../../data/k3.js`.
 
 ### The frontier section (standing convention)
 
-Every chapter carries a `frontier-<id>` extension: the research appendix
-answering (1) *what makes this component inefficient or knowledge-scarce?*
-and (2) *what is the cutting edge doing about it — and what might?* Build it
-from the dedicated components so all chapters match:
+Every chapter in Parts II–IV carries a `frontier-<id>` extension: the research
+appendix answering (1) *what makes this component inefficient or
+knowledge-scarce?* and (2) *what is the cutting edge doing about it — and what
+might?* Build it from the dedicated components so all chapters match:
 
 ```js
 frontier(num,
@@ -62,26 +120,34 @@ frontier(num,
 Rules of the frontier: `researchItem` is for real, citable work only — name
 the paper/system and year, and if unsure of a detail, generalize rather than
 invent. Anything original or unproven goes in `novelIdea`, which is visibly
-badged *speculative · our proposal*. Figures and scenes are welcome here too.
+badged *speculative · our proposal*, and should name its own failure modes and
+the cheapest experiment that would falsify it. Figures and scenes are welcome
+here too.
+
+**Part I (the foundations) is exempt.** Those chapters teach settled
+mathematics — vectors, networks, optimization, probability, sequence models —
+and close on a `takeaway()` instead.
 
 ## Building blocks (`js/core/components.js`)
 
 | Component | Use |
 |---|---|
 | `chapter(id, ...children)` | section wrapper — always the outermost node |
-| `chapterHead(num, kicker, title)` | `04 — THE MECHANISM` + headline |
+| `chapterHead(num, kicker, title)` | `09 — THE MECHANISM` + headline |
 | `prose(...htmlParagraphs)` | body paragraphs; raw HTML strings |
 | `term(word, pos, defHtml)` | definition card (blue left border) |
 | `mathAside(title, bodyHtml)` | collapsible "▸ The math — … (optional)"; equations in `<div class="eq">` |
-| `figure(figNum, captionHtml, svgNode, {wide})` | dark-canvas figure + caption |
+| `figure(captionHtml, node, {wide, key})` | dark-canvas figure + auto-numbered caption |
 | `widget(title, hint, bodyNode)` | interactive widget frame with badge |
 | `takeaway(html)` | emphasized summary band |
 | `specTable(title, sub, rows)` | key/value spec sheet |
+| `txt(x, y, s, opts)` | SVG text with the figure palette's defaults |
 | `PAL` | the SVG color palette (see below) |
 
 DOM helpers are in `js/core/dom.js`: `el(tag, attrs, ...kids)`,
-`svg(tag, attrs, ...kids)`, `svgRoot(w, h, attrs, ...kids)`, `empty(node)`.
-Attrs support `class`, `style` objects, `on*` handlers, `html`, `dataset`.
+`svg(tag, attrs, ...kids)`, `svgRoot(w, h, attrs, ...kids)`, `frag(...)`,
+`empty(node)`. Attrs support `class`, `style` objects, `on*` handlers, `html`,
+`dataset`.
 
 ## Scroll-driven scenes (`js/core/scene.js`)
 
@@ -117,6 +183,9 @@ For non-sticky figures that animate as they transit the viewport, use
 `track(el, cb)` from `js/core/scroll.js` (`cb(p)` with p = viewport transit).
 For simple fade-ups use `reveal(el)` (components apply it automatically).
 
+Widgets are the exception: they are event-driven (buttons, sliders) and may
+hold state.
+
 ## Animation & math utilities
 
 - `js/core/anim.js` — `clamp lerp norm ease seg stepAt rng si pct fmtBytes`.
@@ -140,8 +209,8 @@ Every figure draws on the same dark canvas (`PAL.bg`) and uses color by
 | `train` (green) | parameters trainable during adaptation |
 | `ink / tx / mut` | text emphasis levels on the dark canvas |
 
-A reader who has internalized "amber = weights, cyan = activations" in chapter
-03 should be able to read every later figure without a legend.
+A reader who has internalized "amber = weights, cyan = activations" in the
+foundations should be able to read every later figure without a legend.
 
 ## Data
 
@@ -152,14 +221,16 @@ everywhere. Undisclosed dimensions use K2's blueprint and must be labeled
 
 ## Conventions
 
-- Figures are numbered `<chapter>.<n>` (e.g. `Fig. 4.2`) in captions.
+- Figures are numbered automatically; never type `Fig. 4.2`.
 - Math is written in Unicode/HTML (`x·Wᵢⱼ`, `√d_head`), monospace via
   `<div class="eq">` — no LaTeX dependency.
-- Widgets must be keyboard-accessible (`<button>` for clickables) and give
-  every `svgRoot` an `aria-label`.
+- Widgets must be keyboard-accessible (`<button>` / `<input>` for controls) and
+  give every `svgRoot` a `role="img"` and an `aria-label`.
 - Respect `prefers-reduced-motion`: continuous rAF loops should check it;
   scroll-scrub animations are exempt (user-controlled).
 - All chapter modules are plain ES2022; no TypeScript, no build step.
+- Voice: precise, concrete, unhurried. No marketing, no exclamation marks, no
+  "simply" or "just".
 
 ## Local development
 
