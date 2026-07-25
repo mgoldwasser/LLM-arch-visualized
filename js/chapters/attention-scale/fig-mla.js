@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, chRef, figRef, PAL } from '../../core/components.js';
 import { seg, ease } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { NH, DH, MLA_C, MLA_R, mhaLayerB, gqaLayerB, mlaLayerB } from './shared.js';
 
 export function mlaFigure() {
@@ -80,7 +80,7 @@ export function mlaFigure() {
   const node = figure(
     `what one token leaves behind, to scale — and MLA&rsquo;s trick in full. ${chRef('attention', { cap: true })}&rsquo;s ${figRef('attention', 'variants')} counted the values; here is the byte anatomy and the decompression path. Latent/RoPE dims are DeepSeek-V3/K2-style (${MLA_C}+${MLA_R}); K3&rsquo;s exact MLA dims are undisclosed.`,
     root, { wide: true, key: 'mla' });
-  track(node, (p) => {
+  return pin(node, (p) => {
     head.setAttribute('opacity', seg(p, 0.08, 0.14));
     barEls.forEach((b2, i) => {
       const t = seg(p, 0.1 + i * 0.06, 0.24 + i * 0.06, ease.out);
@@ -97,5 +97,4 @@ export function mlaFigure() {
     ropeChip.setAttribute('opacity', seg(p, 0.52, 0.6));
     absorb.setAttribute('opacity', seg(p, 0.56, 0.66));
   });
-  return node;
 }

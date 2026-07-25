@@ -3,7 +3,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 
 export function ropeFigure() {
   const W = 720, H = 258, cy = 122, r = 70;
@@ -67,6 +67,5 @@ export function ropeFigure() {
   const node = figure(
     'RoPE as clock hands. Each (q,k) coordinate pair rotates by position × frequency — scroll and both hands spin, fast dials faster than slow ones. The shaded angle between q (at position m) and k (at position n), and therefore their dot product, depends only on m − n: attention scores encode relative offset.',
     root, { wide: true, key: 'rope' });
-  track(node, update);
-  return node;
+  return pin(node, update);
 }

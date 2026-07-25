@@ -5,7 +5,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, ease } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 
 export function chatTemplateFigure() {
   const W = 720, H = 210;
@@ -82,7 +82,7 @@ export function chatTemplateFigure() {
     root, { wide: true, key: 'chat' });
 
   const all = [...chipNodes1, ...chipNodes2];
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     all.forEach((g, i) => g.setAttribute('opacity', seg(p, 0.08 + i * 0.012, 0.13 + i * 0.012, ease.out)));
     const tMask = seg(p, 0.42, 0.54, ease.inOut);
     mask1.setAttribute('width', maskW1full * tMask);
@@ -92,5 +92,4 @@ export function chatTemplateFigure() {
     brace.setAttribute('opacity', seg(p, 0.62, 0.70));
     braceTag.setAttribute('opacity', seg(p, 0.64, 0.72));
   });
-  return fig;
 }

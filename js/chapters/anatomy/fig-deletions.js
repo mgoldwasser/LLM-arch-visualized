@@ -3,7 +3,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease } from '../../core/anim.js';
 
 export function deletionsFigure() {
@@ -40,7 +40,7 @@ export function deletionsFigure() {
     'the modern block is the 2017 block edited mostly by deletion. Every removal was validated the same way: take it out, watch the loss curve not move.',
     root, { key: 'deletions' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     strikes.forEach(({ strike, len }, i) => {
       const t = seg(p, 0.14 + i * 0.07, 0.30 + i * 0.07, ease.out);
       strike.setAttribute('x2', 22 + len * t);
@@ -48,5 +48,4 @@ export function deletionsFigure() {
     });
     footer.setAttribute('opacity', seg(p, 0.55, 0.66));
   });
-  return node;
 }

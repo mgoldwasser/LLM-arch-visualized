@@ -74,6 +74,24 @@ a.xref:hover { text-decoration: none; border-bottom-color: var(--acc); }
 }
 .chrome > * { pointer-events: auto; }
 
+/* Content scrolls UNDER the fixed chrome, so step cards and figures used to
+   collide with the title. A soft scrim, fading to nothing, hides the traffic
+   without drawing a hard bar across the page. Only once scrolled — the hero
+   stays clean. */
+.chrome::before {
+  content: "";
+  position: absolute;
+  inset: -0.55rem 0 auto 0;
+  height: 5.8rem;
+  /* opaque for the full height of the title row, then a soft fade — otherwise
+     content passing underneath stays legible through the scrim */
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 58%, var(--bg-0) 100%);
+  opacity: 0;
+  transition: opacity var(--t-med) ease;
+  z-index: -1;
+}
+body.scrolled .chrome::before { opacity: 1; }
+
 .chrome-title {
   font-family: var(--sans);
   font-size: 0.72rem;

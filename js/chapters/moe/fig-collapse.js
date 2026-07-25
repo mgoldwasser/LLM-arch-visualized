@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, lerp, rng } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { K3 } from '../../../data/k3.js';
 
 const E = K3.experts;
@@ -40,7 +40,7 @@ export function collapseFigure() {
     `the routing feedback loop, and its fix. Left alone, early-lucky experts absorb the traffic and the gradient while the rest atrophy; K3&rsquo;s Quantile Balancing derives each expert&rsquo;s allocation directly from the router-score quantiles, with no hand-tuned coefficient to get wrong.`,
     root, { wide: true, key: 'collapse' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     const c = seg(p, 0.14, 0.48);           // drift into collapse
     const b = seg(p, 0.58, 0.86);           // quantile balancing restores
     for (let i = 0; i < N; i++) {
@@ -57,5 +57,4 @@ export function collapseFigure() {
     qbLine.setAttribute('opacity', b);
     qbLabel.setAttribute('opacity', b);
   });
-  return node;
 }

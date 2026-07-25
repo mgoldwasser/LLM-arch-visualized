@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, chNum, figRef, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, rng } from '../../core/anim.js';
 import { photoArt } from './art-photo.js';
 
@@ -75,7 +75,7 @@ export function codebookFigure() {
     `vector quantization (VQ-VAE 2017, VQGAN 2021): compress the image to a grid of integers from a learned codebook. The lookup on the right is ${figRef('tokens', 'embedding')}'s embedding lookup, mirrored — except this vocabulary was learned by a neural net, not counted from text merges.`,
     root, { key: 'codebook' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     photo.setAttribute('opacity', seg(p, 0.1, 0.18));
     arr1.setAttribute('opacity', seg(p, 0.16, 0.21));
     enc.setAttribute('opacity', seg(p, 0.18, 0.24));
@@ -90,5 +90,4 @@ export function codebookFigure() {
     outVec.setAttribute('opacity', seg(p, 0.56, 0.62));
     bottom.setAttribute('opacity', seg(p, 0.6, 0.68));
   });
-  return node;
 }

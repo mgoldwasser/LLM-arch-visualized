@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { txt, figure, chRef, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, clamp } from '../../core/anim.js';
 import { sigmoid, relu } from './net.js';
 
@@ -68,7 +68,7 @@ export function actsFigure() {
     `the two activations this chapter needs. Both are nonlinear, so both break the collapse; they differ in what they do to the <em>slope</em>, which is the quantity training depends on. Production blocks use smoothed and gated relatives of these — ${chRef('anatomy')} takes the catalog apart.`,
     root, { wide: true, key: 'acts' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     A.curve.setAttribute('stroke-dashoffset', 1 - seg(p, 0.1, 0.36));
     B.curve.setAttribute('stroke-dashoffset', 1 - seg(p, 0.18, 0.44));
     A.slope.setAttribute('opacity', seg(p, 0.42, 0.56));
@@ -76,6 +76,4 @@ export function actsFigure() {
     notes.forEach((n, i) => n.setAttribute('opacity', seg(p, 0.56 + i * 0.04, 0.68 + i * 0.04)));
     clipNote.setAttribute('opacity', seg(p, 0.3, 0.42) * 0.9);
   });
-
-  return node;
 }

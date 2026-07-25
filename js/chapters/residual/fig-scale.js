@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease, rng } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 
@@ -57,7 +57,7 @@ export function figScale() {
     root,
     { key: 'scale' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     attnSquares.forEach((sq, i) => sq.setAttribute('opacity', seg(p, 0.08 + i * 0.02, 0.16 + i * 0.02)));
     attnNote.setAttribute('opacity', seg(p, 0.14, 0.22));
     strip.setAttribute('width', stripW * seg(p, 0.18, 0.26, ease.out));
@@ -67,6 +67,4 @@ export function figScale() {
     sharedLabel.setAttribute('opacity', seg(p, 0.70, 0.80));
     fieldNote.setAttribute('opacity', seg(p, 0.66, 0.78));
   });
-
-  return node;
 }

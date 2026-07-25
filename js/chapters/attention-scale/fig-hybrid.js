@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, ease, si } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { L, T1M } from './shared.js';
 
 export function hybridFigure() {
@@ -40,7 +40,7 @@ export function hybridFigure() {
   const node = figure(
     `K3&rsquo;s ~3:1 KDA:MLA interleave (the ratio Moonshot published for Kimi Linear, K3&rsquo;s direct ancestor), drawn on the illustrative ${n}-layer blueprint. Pure linear stacks fail needle-in-a-haystack recall; a thin lattice of full-attention layers restores it at a quarter of the cache.`,
     root, { wide: true, key: 'hybrid' });
-  track(node, (p) => {
+  return pin(node, (p) => {
     head.setAttribute('opacity', seg(p, 0.1, 0.18));
     legend.setAttribute('opacity', seg(p, 0.14, 0.22));
     bars.forEach((b2, i) => b2.setAttribute('opacity', seg(p, 0.16 + i * 0.006, 0.24 + i * 0.006, ease.out)));
@@ -48,5 +48,4 @@ export function hybridFigure() {
     note.setAttribute('opacity', seg(p, 0.52, 0.62));
     note2.setAttribute('opacity', seg(p, 0.58, 0.68));
   });
-  return node;
 }

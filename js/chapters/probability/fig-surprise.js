@@ -5,7 +5,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease, clamp } from '../../core/anim.js';
 
 const P_MIN = 0.015;                                  // left edge of the sweep
@@ -75,7 +75,7 @@ export function surpriseFigure() {
     'surprise, −log p. At p = 1 the model was certain and correct and pays nothing; the penalty grows gently across the middle of the range and then without bound as p → 0. This is the whole shape of the training signal — being confidently wrong is arbitrarily expensive, which is what pushes a model toward honest probabilities rather than bravado.',
     root, { wide: true, key: 'surprise' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     const t = seg(p, 0.20, 0.62, ease.linear);
     const s = t * S_MAX;                               // the sweep is linear in surprise
     const q = Math.exp(-s);                            // …hence log-uniform in p
@@ -111,6 +111,4 @@ export function surpriseFigure() {
     readLabs.forEach((r) => r.setAttribute('opacity', vis * 0.9));
     asym.setAttribute('opacity', seg(p, 0.52, 0.62));
   });
-
-  return node;
 }

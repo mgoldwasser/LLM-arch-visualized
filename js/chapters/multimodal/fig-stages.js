@@ -3,7 +3,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, chRef, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, lerp, ease } from '../../core/anim.js';
 
 export function stagesFigure() {
@@ -71,12 +71,11 @@ export function stagesFigure() {
     `the standard recipe (CLIP 2021 → LLaVA 2023): contrastive pretraining builds a semantically organized vision encoder; a cheap alignment stage trains only the projector; joint instruction tuning finishes the job. Amber = frozen, green = training — the same color grammar as ${chRef('adaptation')}.`,
     root, { key: 'stages' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     [stage1, stage2, stage3].forEach((s, i) => {
       const t = seg(p, 0.12 + i * 0.14, 0.26 + i * 0.14, ease.out);
       s.setAttribute('opacity', t);
       s.setAttribute('transform', `translate(0, ${lerp(14, 0, t)})`);
     });
   });
-  return node;
 }

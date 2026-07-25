@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, chRef, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease, rng } from '../../core/anim.js';
 
 const SUB = ['₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈'];
@@ -79,7 +79,7 @@ export function figAtom() {
     root,
     { key: 'atom' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     gX.setAttribute('opacity', seg(p, 0.05, 0.16));
     gW.setAttribute('opacity', seg(p, 0.08, 0.18));
     gY.setAttribute('opacity', seg(p, 0.12, 0.2));
@@ -101,6 +101,4 @@ export function figAtom() {
     ro2.textContent = active ? `y_j so far  =  ${f(cums[i])}${i === d - 1 ? '  ✓' : '  + …'}` : '';
     yjText.textContent = active ? f(cums[i]) : '';
   });
-
-  return node;
 }

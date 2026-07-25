@@ -3,7 +3,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease, rng } from '../../core/anim.js';
 
 export function audioFigure() {
@@ -72,7 +72,7 @@ export function audioFigure() {
     `sound becomes an image, then tokens: waveform → log-mel spectrogram → convolutional downsampling → encoder vectors at ~25–50 per second (Whisper's recipe). Codec-token variants stream at a few hundred discrete tokens per second — cheap enough to generate in real time, which is what makes live voice assistants possible.`,
     root, { key: 'audio' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     wave.setAttribute('stroke-dashoffset', 1 - seg(p, 0.08, 0.26, ease.inOut));
     waveLabel.setAttribute('opacity', seg(p, 0.18, 0.24));
     arr1.setAttribute('opacity', seg(p, 0.24, 0.29));
@@ -89,5 +89,4 @@ export function audioFigure() {
     tLabel.setAttribute('opacity', seg(p, 0.6, 0.66));
     tLabel2.setAttribute('opacity', seg(p, 0.64, 0.7));
   });
-  return node;
 }

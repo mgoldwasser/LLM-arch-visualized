@@ -3,7 +3,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, chNum, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 
@@ -66,7 +66,7 @@ export function blockCompareFigure() {
     `the same block, nine years apart (right side illustrative where ${K3.name} is undisclosed). Amber = what changed. Everything not highlighted — residual adds, the two-sublayer rhythm, the stack itself — survived untouched.`,
     root, { wide: true, key: 'block-compare' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     let current = -1;
     boxes.forEach(({ lHi, rHi, diff }) => {
       if (diff < 0) return;
@@ -80,5 +80,4 @@ export function blockCompareFigure() {
     reason.setAttribute('opacity', on);
     if (current >= 0) reason.textContent = DIFFS[current];
   });
-  return node;
 }

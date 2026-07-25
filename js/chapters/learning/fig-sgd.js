@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { txt, figure, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease, rng } from '../../core/anim.js';
 
 const M = 24, BATCH = 4, ETA = 0.25, STEPS = 18;
@@ -108,7 +108,7 @@ export function figSgd() {
     `why minibatches work. The dashed path uses all 24 examples per step; the solid path uses four, drawn from a fixed seed. Same learning rate, same start, roughly the same destination — for a sixth of the arithmetic. The jitter near the bottom is not a bug in the drawing: it is the noise floor of stochastic gradient descent.`,
     root, { wide: true, key: 'sgd' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     contours.forEach((e, i) => e.setAttribute('opacity', seg(p, 0.04 + i * 0.012, 0.12 + i * 0.012)));
     exDots.forEach((d, i) => d.setAttribute('opacity', seg(p, 0.06 + (i % 8) * 0.006, 0.15 + (i % 8) * 0.006) * 0.8));
     meanMark.setAttribute('opacity', seg(p, 0.12, 0.18));
@@ -128,5 +128,4 @@ export function figSgd() {
     notes[0].setAttribute('opacity', seg(p, 0.72, 0.80));
     notes[1].setAttribute('opacity', seg(p, 0.84, 0.92));
   });
-  return fig;
 }

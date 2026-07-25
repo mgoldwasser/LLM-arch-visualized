@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, clamp, lerp, ease } from '../../core/anim.js';
 import { sci, sup } from './shared.js';
 
@@ -82,7 +82,7 @@ export function vanishingFigure() {
     'the chain rule, iterated. Each recurrent step multiplies the gradient by roughly the same Jacobian norm γ, so the signal reaching k steps back scales as γᵏ — a straight line on a log axis. Anything below 1 vanishes into numerical noise within a few dozen steps; anything above 1 explodes. Only γ = 1 exactly would carry the signal intact, and that is a knife edge no learned matrix stays on.',
     root, { wide: true, key: 'vanishing' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     head.setAttribute('opacity', seg(p, 0.06, 0.14));
     grid.setAttribute('opacity', seg(p, 0.08, 0.18));
     curves.forEach((c, i) => {
@@ -111,5 +111,4 @@ export function vanishingFigure() {
       r.val.textContent = sci(magAt(c.g, k), 1);
     });
   });
-  return node;
 }

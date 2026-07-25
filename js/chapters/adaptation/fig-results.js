@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, ease } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 
 export function resultsFigure() {
   const W = 720, H = 292, Y0 = 70, Y1 = 100, TOP = 44, BOT = 232;
@@ -44,7 +44,7 @@ export function resultsFigure() {
     'GSM8K, Qwen2.5-7B-Instruct, trained with GRPO on math problems. Thirteen parameters recover ~90% of the fine-tuning gains at ~1000× fewer trained parameters; even a single parameter buys about four points. Full fine-tuning bar illustrative.',
     node, { key: 'results' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     els.forEach((e, i) => {
       const t = seg(p, 0.16 + i * 0.05, 0.38 + i * 0.05, ease.out);
       const h = (BOT - y(e.v)) * t;
@@ -54,5 +54,4 @@ export function resultsFigure() {
     });
     gain.setAttribute('opacity', seg(p, 0.42, 0.52));
   });
-  return fig;
 }

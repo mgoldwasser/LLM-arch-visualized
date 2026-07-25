@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease, rng } from '../../core/anim.js';
 import { dot } from '../../core/mathtools.js';
 
@@ -94,7 +94,7 @@ export function matvecFigure() {
     'one matrix–vector product, unrolled — x is drawn as a column so its entries line up with W’s rows. The k columns never interact: the product is k independent dot products, computed at once because the hardware would rather do them all together.',
     root, { wide: true, key: 'matvec' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     gX.setAttribute('opacity', seg(p, 0.04, 0.14));
     gW.setAttribute('opacity', seg(p, 0.08, 0.18));
     gY.setAttribute('opacity', seg(p, 0.14, 0.24));
@@ -142,6 +142,4 @@ export function matvecFigure() {
     readingA.setAttribute('opacity', seg(p, 0.86, 0.93));
     readingB.setAttribute('opacity', seg(p, 0.89, 0.96));
   });
-
-  return node;
 }

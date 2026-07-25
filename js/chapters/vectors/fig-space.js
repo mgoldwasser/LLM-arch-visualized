@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, lerp, ease, rng } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 
@@ -88,7 +88,7 @@ export function spaceFigure() {
     'the same object three ways. The arrow is a mnemonic for the algebra; the list is the algebra; the block is the size the algebra actually runs at.',
     root, { wide: true, key: 'space' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     const tA = seg(p, 0.06, 0.20, ease.out);
     arrow.setAttribute('x2', lerp(OX, tipX, tA));
     arrow.setAttribute('y2', lerp(OY, tipY, tA));
@@ -106,6 +106,4 @@ export function spaceFigure() {
     bits.forEach((b, i) => b.setAttribute('fill-opacity', i < shown ? shades[i] : 0));
     capC.setAttribute('opacity', seg(p, 0.52, 0.62));
   });
-
-  return node;
 }

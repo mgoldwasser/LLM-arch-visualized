@@ -3,7 +3,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, PAL } from '../../core/components.js';
 import { seg, ease, si } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { K3 } from '../../../data/k3.js';
 
 export function computeFigure() {
@@ -44,7 +44,7 @@ export function computeFigure() {
     `the folk formula for training cost, and the entire economic case for MoE: sparsity buys trillion-scale capacity at ${si(K3.activeParams)}-scale compute. Bars to scale — the dense bar is ~56× taller.`,
     root, { wide: true, key: 'compute' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     formula.setAttribute('opacity', seg(p, 0.10, 0.18));
     termN.setAttribute('opacity', seg(p, 0.16, 0.24));
     termD.setAttribute('opacity', seg(p, 0.20, 0.28));
@@ -59,5 +59,4 @@ export function computeFigure() {
     denseLab.setAttribute('opacity', seg(p, 0.52, 0.60));
     brace.setAttribute('opacity', seg(p, 0.56, 0.64));
   });
-  return fig;
 }

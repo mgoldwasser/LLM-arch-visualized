@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, lerp, ease, si } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { L, D, NH, T1M, fmtBig, mhaAt1M, gqaAt1M, mlaAt1M, scoresOne, scoresAll } from './shared.js';
 
 export function wallFigure() {
@@ -55,7 +55,7 @@ export function wallFigure() {
   const node = figure(
     `the two enemies on one axis. The <span style="color:var(--fig-attn)">violet</span> items are the O(T) cache (decode&rsquo;s problem); the <span style="color:var(--fig-loss)">red</span> items are the O(T²) score matrix (training/prefill&rsquo;s problem) — if it were ever materialized. All computed from the K2 blueprint in <code>data/k3.js</code>.`,
     root, { wide: true, key: 'wall' });
-  track(node, (p) => {
+  return pin(node, (p) => {
     title.setAttribute('opacity', seg(p, 0.08, 0.16));
     subtitle.setAttribute('opacity', seg(p, 0.1, 0.18));
     ticks.forEach((t, i) => t.setAttribute('opacity', seg(p, 0.12 + i * 0.006, 0.2 + i * 0.006)));
@@ -69,5 +69,4 @@ export function wallFigure() {
     });
     foot.setAttribute('opacity', seg(p, 0.55, 0.65));
   });
-  return node;
 }

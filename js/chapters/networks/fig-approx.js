@@ -5,7 +5,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { txt, figure, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, clamp } from '../../core/anim.js';
 import { sigmoid } from './net.js';
 
@@ -76,7 +76,7 @@ export function approxFigure() {
     'the existence proof, drawn: two sigmoids make a bump, and scaled bumps tile any continuous curve to whatever accuracy you like. What the proof does not say is how many bumps, or how you would ever find them.',
     root, { wide: true, key: 'approx' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     const a = seg(p, 0.06, 0.2);
     const b = seg(p, 0.2, 0.32);
     const merge = seg(p, 0.32, 0.44);
@@ -106,6 +106,4 @@ export function approxFigure() {
     const used = Math.min(N, Math.ceil(m));
     lab3.textContent = `${used} bump${used === 1 ? '' : 's'} = ${used + 1} hidden neurons — sum of scaled steps`;
   });
-
-  return node;
 }

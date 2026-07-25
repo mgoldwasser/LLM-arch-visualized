@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, chNum, PAL } from '../../core/components.js';
 import { seg, lerp, ease } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { BP } from './shared.js';
 
 /* Unicode subscript digits, so the concat label tracks BP.heads. */
@@ -70,7 +70,7 @@ export function shapesFigure() {
   const node = figure(
     'shape bookkeeping for one head. GQA shrinks the K,V boxes; MLA replaces them with a thin latent; KDA deletes the T×T object entirely.',
     root, { wide: true, key: 'shapes' });
-  track(node, (p) => {
+  return pin(node, (p) => {
     head.setAttribute('opacity', seg(p, 0.1, 0.16));
     items.forEach((g, i) => {
       const t = seg(p, 0.12 + i * 0.028, 0.2 + i * 0.028, ease.out);
@@ -80,5 +80,4 @@ export function shapesFigure() {
     note1.setAttribute('opacity', seg(p, 0.62, 0.7));
     note2.setAttribute('opacity', seg(p, 0.66, 0.74));
   });
-  return node;
 }

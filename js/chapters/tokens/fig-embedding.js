@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, lerp, ease, si } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 
@@ -80,7 +80,7 @@ export function figEmbedding() {
     root,
     { key: 'embedding' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     gE.setAttribute('opacity', seg(p, 0.12, 0.28));
     const tRow = seg(p, 0.28, 0.38);
     hlRow.setAttribute('opacity', tRow);
@@ -99,6 +99,4 @@ export function figEmbedding() {
     gLogits.setAttribute('opacity', seg(p, 0.72, 0.8));
     bottomNote.setAttribute('opacity', seg(p, 0.55, 0.65));
   });
-
-  return node;
 }

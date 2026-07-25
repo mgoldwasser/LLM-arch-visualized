@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, chNum, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, pct } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 import { photoArt } from './art-photo.js';
@@ -49,12 +49,11 @@ export function videoFigure() {
     `video is images × time — and the token bill multiplies accordingly. Mitigations are aggressive: temporal pooling (merge neighboring frames' tokens), keyframe selection, and token merging, often compressing a frame to 16–64 tokens before the LLM sees it.`,
     root, { key: 'video' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     frames.forEach((f, i) => f.setAttribute('opacity', seg(p, 0.12 + i * 0.05, 0.22 + i * 0.05)));
     stripLine.setAttribute('opacity', seg(p, 0.36, 0.44));
     stripTag.setAttribute('opacity', seg(p, 0.4, 0.48));
     math1.setAttribute('opacity', seg(p, 0.48, 0.56));
     math2.setAttribute('opacity', seg(p, 0.54, 0.62));
   });
-  return node;
 }

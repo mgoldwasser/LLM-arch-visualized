@@ -3,7 +3,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, chNum, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease, rng } from '../../core/anim.js';
 import { photoArt } from './art-photo.js';
 
@@ -80,7 +80,7 @@ export function convergeFigure() {
     'the punchline of the chapter, stated first: a transformer layer consumes vectors, not text. Anything that can be turned into a sequence of d_model vectors can enter the stack.',
     root, { key: 'converge' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     chips.forEach((c, i) => c.setAttribute('opacity', seg(p, 0.08 + i * 0.02, 0.16 + i * 0.02)));
     thumb.setAttribute('opacity', seg(p, 0.12, 0.2));
     wave.setAttribute('stroke-dashoffset', 1 - seg(p, 0.14, 0.3, ease.inOut));
@@ -93,5 +93,4 @@ export function convergeFigure() {
     arrS.setAttribute('opacity', seg(p, 0.54, 0.6));
     stack.setAttribute('opacity', seg(p, 0.56, 0.64));
   });
-  return node;
 }

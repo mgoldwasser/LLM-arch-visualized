@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, ease } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 import { sci, sup, moreThan, CORPUS } from './shared.js';
@@ -84,7 +84,7 @@ export function explosionFigure() {
     `every extra token of context multiplies the table by V = ${V.toLocaleString('en-US')}. Past n = ${nCross} the table has more cells than the corpus has tokens, so the overwhelming majority of counts are not small — they are exactly zero, and the model has no way to tell &ldquo;never seen&rdquo; from &ldquo;impossible&rdquo;.`,
     root, { wide: true, key: 'explosion' });
 
-  track(node, (p) => {
+  return pin(node, (p) => {
     head.setAttribute('opacity', seg(p, 0.06, 0.14));
     grid.setAttribute('opacity', seg(p, 0.08, 0.18));
     bars.forEach(({ g, lab }, i) => {
@@ -97,5 +97,4 @@ export function explosionFigure() {
     lines.forEach((l, i) => l.setAttribute('opacity', seg(p, 0.5 + i * 0.06, 0.6 + i * 0.06)));
     foot.setAttribute('opacity', seg(p, 0.78, 0.88));
   });
-  return node;
 }

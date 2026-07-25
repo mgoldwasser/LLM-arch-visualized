@@ -5,7 +5,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, ease } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 
 export function asymmetryFigure() {
   const W = 720, H = 300, TOP = 40, BOT = 240, X0 = 84, X1 = 664;
@@ -48,7 +48,7 @@ export function asymmetryFigure() {
     'the asymmetry: at equal tiny capacity, SFT fails where RL succeeds, needing 100–1000× larger updates to match. Curves illustrative, after the TinyLoRA paper.',
     node, { key: 'asymmetry' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     rlPath.setAttribute('stroke-dashoffset', 1 - seg(p, 0.14, 0.36, ease.inOut));
     sftPath.setAttribute('stroke-dashoffset', 1 - seg(p, 0.2, 0.44, ease.inOut));
     rlDot.setAttribute('opacity', seg(p, 0.3, 0.36));
@@ -57,5 +57,4 @@ export function asymmetryFigure() {
     sftTag.setAttribute('opacity', seg(p, 0.4, 0.46));
     gap.setAttribute('opacity', seg(p, 0.46, 0.55));
   });
-  return fig;
 }

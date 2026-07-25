@@ -3,7 +3,7 @@
 
 import { el, svg, svgRoot } from '../../core/dom.js';
 import { chapter, prose, takeaway, chRef, PAL } from '../../core/components.js';
-import { reveal, track } from '../../core/scroll.js';
+import { reveal, pin } from '../../core/scroll.js';
 import { seg, ease, si } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 
@@ -71,13 +71,13 @@ export function render({ id, title }) {
     el('figcaption', {},
       el('span', { class: 'fig-n' }, 'Nine years — '),
       el('span', { html: `from the transformer paper to a fine-tune of ${K3.name} that fits in 26 bytes.` })));
-  track(tlFig, tl.update);
+  const tlPinned = pin(tlFig, tl.update);
 
   return chapter(id,
     reveal(el('header', { class: 'ch-head measure' },
       el('div', { class: 'ch-kicker' }, 'Epilogue'),
       el('h2', {}, title))),
-    tlFig,
+    tlPinned,
     prose(
       `Every mechanism in this book is assembled from the operations of the opening chapters. Attention is the dot product of ${chRef('vectors')} normalized by the softmax of ${chRef('probability')}; the MoE router is that same pair pointed at experts instead of positions; every weight was placed by the gradient descent of ${chRef('learning')} running over the layered neurons of ${chRef('networks')}; and the parallelism that makes any of it affordable is the answer to the wall ${chRef('sequences')} ends on. Nothing after Part I introduces a new kind of arithmetic — only far more of it, arranged more carefully.`),
     takeaway(

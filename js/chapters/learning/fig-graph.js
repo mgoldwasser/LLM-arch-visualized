@@ -4,7 +4,7 @@
 
 import { svg, svgRoot } from '../../core/dom.js';
 import { txt, figure, PAL } from '../../core/components.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { seg, lerp, ease } from '../../core/anim.js';
 import { INIT, forward, backward, f2, f3 } from './net.js';
 
@@ -87,7 +87,7 @@ export function figGraph() {
     `the chain rule made mechanical. Forward (cyan) computes and caches; backward (red-orange) starts from ∂L/∂L = 1 and multiplies by one local derivative per edge. The gradient reaching w⁽¹⁾₁₁ is the product along the path: ${f3(G.dz2)} × ${f2(P.W2[0])} × 1 × ${f2(F.x[0])} = ${f3(G.dW1[0][0])}. Every number computed live from the same network.`,
     root, { wide: true, key: 'graph' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     fwdBand.setAttribute('opacity', seg(p, 0.04, 0.10));
     const fwdX = lerp(0, W, seg(p, 0.06, 0.40, ease.inOut));
     nodes.forEach((g, i) => g.setAttribute('opacity', seg(p, 0.06 + i * 0.055, 0.13 + i * 0.055, ease.out)));
@@ -105,5 +105,4 @@ export function figGraph() {
     acc.forEach((g, i) => g.setAttribute('opacity', seg(p, 0.50 + (4 - i) * 0.07, 0.58 + (4 - i) * 0.07)));
     note.setAttribute('opacity', seg(p, 0.86, 0.94));
   });
-  return fig;
 }

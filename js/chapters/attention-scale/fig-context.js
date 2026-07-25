@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, ease, rng, si } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { T1M } from './shared.js';
 
 export function contextFigure() {
@@ -62,7 +62,7 @@ export function contextFigure() {
   const node = figure(
     `two honest footnotes to &ldquo;1M context&rdquo;. Left: softmax must sum to 1, so surplus mass parks on the first tokens (<em>sinks</em>) — StreamingLLM keeps them plus a window and streams forever in constant memory. Right: needle tests saturate long before real multi-fact comprehension does; position of information still matters.`,
     root, { wide: true, key: 'context' });
-  track(node, (p) => {
+  return pin(node, (p) => {
     aTitle.setAttribute('opacity', seg(p, 0.08, 0.16));
     aCells.forEach((c, i) => c.setAttribute('opacity', seg(p, 0.1 + i * 0.005, 0.18 + i * 0.005)));
     aBars.forEach((b2, i) => {
@@ -82,5 +82,4 @@ export function contextFigure() {
     uTag.setAttribute('opacity', seg(p, 0.48, 0.56));
     bNote.setAttribute('opacity', seg(p, 0.52, 0.62));
   });
-  return node;
 }

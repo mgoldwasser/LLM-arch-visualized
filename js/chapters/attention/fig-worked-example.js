@@ -5,7 +5,7 @@
 import { el } from '../../core/dom.js';
 import { figure } from '../../core/components.js';
 import { seg, lerp, ease } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { attention, softmax, round } from '../../core/mathtools.js';
 
 export function workedExample() {
@@ -78,12 +78,11 @@ export function workedExample() {
     'the whole mechanism, checkable by hand. The learned part is W_Q, W_K, W_V (which produced these Q, K, V); everything after is fixed arithmetic — S, A, and z here are computed live by the same code path as the figures.',
     wrap, { key: 'worked' });
   const wins = [[0.1, 0.2], [0.22, 0.34], [0.36, 0.48]];
-  track(node, (p) => {
+  return pin(node, (p) => {
     stages.forEach((s, i) => {
       const t = seg(p, wins[i][0], wins[i][1], ease.out);
       s.style.opacity = t;
       s.style.transform = `translateY(${lerp(14, 0, t)}px)`;
     });
   });
-  return node;
 }

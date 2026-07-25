@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, ease } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { K3 } from '../../../data/k3.js';
 import { BP } from './shared.js';
 
@@ -50,7 +50,7 @@ export function variantsFigure() {
   const node = figure(
     'ten years of attention variants, one motive: shrink the per-token memory inference must hold.',
     root, { wide: true, key: 'variants' });
-  track(node, (p) => {
+  return pin(node, (p) => {
     head.setAttribute('opacity', seg(p, 0.1, 0.18));
     axis.setAttribute('opacity', seg(p, 0.12, 0.2));
     els.forEach((e, i) => {
@@ -66,5 +66,4 @@ export function variantsFigure() {
     });
     kdaNote.setAttribute('opacity', seg(p, 0.5, 0.6));
   });
-  return node;
 }

@@ -179,8 +179,28 @@ scrubbable: scrolling backwards must rewind the animation, so **never keep
 animation state outside the update function** — set attributes idempotently
 from `p` every call.
 
-For non-sticky figures that animate as they transit the viewport, use
-`track(el, cb)` from `js/core/scroll.js` (`cb(p)` with p = viewport transit).
+## Pinned figures (`pin`)
+
+A standalone figure — no step cards — animates the same way: pinned at the
+middle of the viewport and scrubbed in place, rather than sliding upward
+while it plays.
+
+```js
+const node = figure('caption…', svgRoot(720, 400, …), { key: 'atom' });
+return pin(node, (p) => { /* set attributes from p */ });
+```
+
+`pin()` returns the **wrapper** — insert that into the chapter, not the bare
+figure. It wraps the figure in a tall track (`extent` vh, default 190) inside
+which the figure sticks; `p` runs 0→1 across the travel (extent − 100vh, so
+the default is about one screen of scrubbing). Pass `{ extent }` to give a
+long animation more room or a short one less.
+
+The same discipline as scenes applies: set attributes idempotently from `p`,
+never hold state outside the callback.
+
+`track(el, cb)` still exists for animating a figure as it transits the
+viewport, but pinned is the house style — every figure in the book uses it.
 For simple fade-ups use `reveal(el)` (components apply it automatically).
 
 Widgets are the exception: they are event-driven (buttons, sliders) and may

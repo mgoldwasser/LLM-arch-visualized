@@ -5,7 +5,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, PAL } from '../../core/components.js';
 import { seg, ease, rng } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 
 export function grpoFigure() {
   const W = 720, H = 484;
@@ -74,7 +74,7 @@ export function grpoFigure() {
     `GRPO on one prompt: a group of 16 attempts, a binary verifier (it cannot be flattered), and each attempt's standing <em>relative to its own group</em> as the learning signal — no value network needed. Attempt lengths illustrative, seeded.`,
     root, { wide: true, key: 'grpo' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     prompt.setAttribute('opacity', seg(p, 0.06, 0.11));
     fan.setAttribute('opacity', seg(p, 0.09, 0.14));
     headers.setAttribute('opacity', seg(p, 0.10, 0.15));
@@ -100,5 +100,4 @@ export function grpoFigure() {
     meanTag.setAttribute('opacity', tMean);
     reinforceTag.setAttribute('opacity', seg(p, 0.80, 0.88));
   });
-  return fig;
 }

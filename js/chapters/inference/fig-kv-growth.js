@@ -5,7 +5,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, txt, chRef, PAL } from '../../core/components.js';
 import { seg, ease, si } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 import { K3 } from '../../../data/k3.js';
 
 export function kvGrowthFigure() {
@@ -50,7 +50,7 @@ export function kvGrowthFigure() {
     `the two phases, and why ${chRef('attention')}'s variant zoo exists: at ${si(K3.contextWindow)} tokens, MHA's cache would be ${mhaAt1M} <em>per sequence</em>. Bars computed from the illustrative K2 blueprint.`,
     node, { key: 'kv' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     barEls.forEach((b, i) => {
       const t = seg(p, 0.16 + i * 0.05, 0.36 + i * 0.05, ease.out);
       const w = Math.max(4, BARMAX * (b.v / per1k.mha)) * t;
@@ -63,5 +63,4 @@ export function kvGrowthFigure() {
     kdaTag.setAttribute('opacity', seg(p, 0.4, 0.48));
     at1M.setAttribute('opacity', seg(p, 0.44, 0.54));
   });
-  return fig;
 }

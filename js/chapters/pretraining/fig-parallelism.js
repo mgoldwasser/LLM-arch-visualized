@@ -4,7 +4,7 @@
 import { svg, svgRoot } from '../../core/dom.js';
 import { figure, chRef, PAL } from '../../core/components.js';
 import { seg, ease, rng } from '../../core/anim.js';
-import { track } from '../../core/scroll.js';
+import { pin } from '../../core/scroll.js';
 
 export function parallelismFigure() {
   const W = 720, H = 440;
@@ -79,9 +79,8 @@ export function parallelismFigure() {
     `four ways to cut one model + one batch across a GPU fleet — a frontier run uses all of them at once, plus MoE&rsquo;s own expert parallelism from ${chRef('moe')}.`,
     root, { wide: true, key: 'parallelism' });
 
-  track(fig, (p) => {
+  return pin(fig, (p) => {
     panels.forEach((g, i) => g.setAttribute('opacity', seg(p, 0.10 + i * 0.11, 0.20 + i * 0.11, ease.out)));
     legend.setAttribute('opacity', seg(p, 0.14, 0.22));
   });
-  return fig;
 }
