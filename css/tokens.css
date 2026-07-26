@@ -7,6 +7,7 @@
 :root {
   /* surfaces */
   --bg: #FCFBF7;
+  --bg-0: rgba(252, 251, 247, 0);   /* same hue, zero alpha — for gradient fades */
   --panel: #F4F2EA;
   --panel-deep: #0E1116;      /* always-dark panels (code, figures on dark) */
   --panel-border: rgba(30, 28, 24, 0.10);
@@ -77,6 +78,7 @@
 
 body.dark {
   --bg: #0E1116;
+  --bg-0: rgba(14, 17, 22, 0);
   --panel: #12161C;
   --panel-border: #232B35;
   --ink: #EDF2F7;

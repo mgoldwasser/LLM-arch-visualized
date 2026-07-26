@@ -51,6 +51,15 @@ summary::-webkit-details-marker { display: none; }
 
 .chapter { margin-top: 5.5rem; scroll-margin-top: 4rem; }
 
+/* Not yet mounted — reserves rough height so the scrollbar doesn't lurch as
+   chapters load in. Replaced wholesale by the rendered section. */
+.chapter-pending { min-height: 70vh; }
+
+/* Cross-reference to another chapter or figure (js/core/numbering.js). */
+.xref { color: var(--acc); white-space: nowrap; }
+a.xref { text-decoration: none; border-bottom: 1px solid var(--hr); }
+a.xref:hover { text-decoration: none; border-bottom-color: var(--acc); }
+
 /* ---- top chrome ---------------------------------------------------------- */
 
 .chrome {
@@ -64,6 +73,24 @@ summary::-webkit-details-marker { display: none; }
   pointer-events: none;
 }
 .chrome > * { pointer-events: auto; }
+
+/* Content scrolls UNDER the fixed chrome, so step cards and figures used to
+   collide with the title. A soft scrim, fading to nothing, hides the traffic
+   without drawing a hard bar across the page. Only once scrolled — the hero
+   stays clean. */
+.chrome::before {
+  content: "";
+  position: absolute;
+  inset: -0.55rem 0 auto 0;
+  height: 5.8rem;
+  /* opaque for the full height of the title row, then a soft fade — otherwise
+     content passing underneath stays legible through the scrim */
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 58%, var(--bg-0) 100%);
+  opacity: 0;
+  transition: opacity var(--t-med) ease;
+  z-index: -1;
+}
+body.scrolled .chrome::before { opacity: 1; }
 
 .chrome-title {
   font-family: var(--sans);
@@ -124,6 +151,16 @@ body.scrolled .chrome-title { opacity: 1; }
 }
 @media (max-width: 40rem) { .toc ol { columns: 1; } }
 .toc li { break-inside: avoid; }
+.toc .toc-part {
+  font-family: var(--sans);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--acc);
+  margin: 1.1rem 0 0.3rem;
+  padding-bottom: 0.2rem;
+}
+.toc .toc-part:first-child { margin-top: 0; }
 .toc a {
   display: flex;
   gap: 0.8rem;

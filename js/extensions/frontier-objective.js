@@ -1,4 +1,4 @@
-/* Frontier — chapter 01 (the next-token objective).
+/* Frontier — the `objective` chapter (the next-token objective).
    What makes pure next-token prediction inefficient, what the field is
    doing about it, and one speculative direction of our own. */
 

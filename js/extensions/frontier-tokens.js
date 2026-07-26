@@ -1,8 +1,10 @@
-/* Frontier — chapter 02 (tokens & embeddings).
+/* Frontier — the `tokens` chapter (tokens & embeddings).
    Why a frozen BPE tokenizer is the model's weakest interface, what the
    field is doing about it, and one speculative direction of our own. */
 
 import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { si } from '../core/anim.js';
+import { K3 } from '../../data/k3.js';
 
 export function render({ num }) {
   return frontier(num,
@@ -52,7 +54,7 @@ export function render({ num }) {
       deployed LLMs are trained with vocabularies <em>smaller</em> than optimal for their size
       ("larger models deserve larger vocabularies"). A first-principles answer to a hyperparameter
       that had been set by convention — though the fits are at research scale, and extrapolating
-      them to 2.8T-parameter models is still extrapolation.</p>`),
+      them to ${si(K3.totalParams)}-parameter models is still extrapolation.</p>`),
     researchItem('Tokenizer transplants & vocabulary adaptation', '2023', 'research', `
       <p>If the tokenizer is frozen, can it at least be swapped after the fact? A line of work
       (WECHSEL, FOCUS, and successors) initializes embeddings for a <em>new</em> vocabulary from

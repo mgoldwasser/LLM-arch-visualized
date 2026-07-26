@@ -1,8 +1,12 @@
-/* Frontier — chapter 07 (pretraining).
+/* Frontier — the `pretraining` chapter.
    Why the megaproject wastes data, FLOPs, and its own hard-won lessons —
    what the field is doing about it, and one speculative direction of our own. */
 
 import { frontier, bottleneck, researchItem, novelIdea } from '../core/components.js';
+import { si } from '../core/anim.js';
+import { K3 } from '../../data/k3.js';
+
+const totalT = `${si(K3.totalParams).replace('T', '')} trillion`;
 
 export function render({ num }) {
   return frontier(num,
@@ -33,7 +37,7 @@ export function render({ num }) {
       inflate scores, and recursive training on model output degrades tail knowledge — curation
       buys efficiency but nobody has shown it replaces the raw web's long tail.</p>`),
     researchItem('Muon and matrix-aware optimizers', '2024–25', 'deployed', `
-      <p>Adam treats 2.8 trillion parameters as 2.8 trillion independent scalars; Muon (2024)
+      <p>Adam treats ${totalT} parameters as ${totalT} independent scalars; Muon (2024)
       instead treats each weight matrix as the unit, orthogonalizing its update via Newton–Schulz
       iterations so all directions of the matrix move at comparable rates. Moonshot scaled it
       first (Moonlight, then K2's full trillion-parameter run) and reported markedly better

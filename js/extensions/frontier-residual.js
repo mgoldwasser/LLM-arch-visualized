@@ -1,4 +1,4 @@
-/* Frontier — chapter 03 (the residual stream).
+/* Frontier — the `residual` chapter (the residual stream).
    Why a fixed-width shared bus with strictly serial layers is a bottleneck,
    what the field is doing about it, and one speculative direction of our own. */
 

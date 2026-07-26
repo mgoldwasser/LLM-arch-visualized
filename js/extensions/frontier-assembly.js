@@ -1,4 +1,4 @@
-/* Frontier — chapter 06 (parameter arithmetic — where knowledge lives).
+/* Frontier — the `assembly` chapter (parameter arithmetic — where knowledge lives).
    Why weights are a write-once knowledge store nobody can audit, what the
    field is doing about it, and one speculative direction of our own. */
 

@@ -13,6 +13,7 @@
 */
 
 import { clamp } from './anim.js';
+import { el } from './dom.js';
 
 const tracked = [];   // { el, cb, mode }
 const yWatchers = [];
@@ -84,6 +85,24 @@ export function trackScene(el, cb) {
 export function onScrollY(cb) {
   yWatchers.push(cb);
   refresh();
+}
+
+/* Pin a standalone figure to the middle of the viewport and scrub its
+   animation while the reader scrolls past it — the same feel as a
+   createScene() sticky figure, but without step cards.
+
+     return pin(node, (p) => { ...set attributes from p... });
+
+   The figure is wrapped in a tall track; it sticks, centred, for the whole
+   of it, and p runs 0..1 across the travel. `extent` is the track height in
+   vh, so travel = extent − 100vh (190 → about one screen of scrubbing).
+
+   Returns the WRAPPER — insert that into the chapter, not the figure. */
+export function pin(node, cb, { extent = 190 } = {}) {
+  const stick = el('div', { class: 'pin-stick' }, node);
+  const wrap = el('div', { class: 'pin-track', style: { height: `${extent}vh` } }, stick);
+  trackScene(wrap, cb);
+  return wrap;
 }
 
 /* Reveal-on-enter, via IntersectionObserver (cheap, one-shot). */
