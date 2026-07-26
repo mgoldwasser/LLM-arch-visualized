@@ -1,5 +1,7 @@
 # How a Trillion-Parameter Model Actually Works
 
+**→ Read it: [mgoldwasser.github.io/LLM-arch-visualized](https://mgoldwasser.github.io/LLM-arch-visualized/)**
+
 An interactive, **scroll-driven visual explainer** of how large language models
 work — from the dot product up to a 2.8-trillion-parameter mixture-of-experts
 model, and back down to a fine-tune that changes **13 numbers**.
@@ -14,8 +16,12 @@ by **Kimi K3**, a 2.8-trillion-parameter open-weight MoE model.
 
 ## Running it
 
-It's a fully static site — no build step, no dependencies. ES modules require
-http(s), so serve the directory:
+The published site is served by GitHub Pages from `main` at the repository
+root, so a merge to `main` deploys it — there is no build step or workflow to
+wait on.
+
+To run it locally: it's a fully static site — no build step, no dependencies.
+ES modules require http(s), so serve the directory:
 
 ```sh
 python3 -m http.server 8080     # or: npx http-server -p 8080
