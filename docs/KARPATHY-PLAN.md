@@ -10,6 +10,29 @@ Source material read in full:
 This document is the analysis and the build plan. It is deliberately concrete:
 every proposed animation names its mechanic and its test.
 
+> **Status: built and shipped (2026-07-27).** All six phases in section 6 are
+> done. The book went from 18 chapters to 21 and from 57 figures to 86, and
+> section 5's harness exists at `/test/` — 1081 assertions passing at 375×667,
+> 393×852, 950×870 and 1440×900.
+>
+> Read the rest as a record of the reasoning, not as a to-do list. Two places
+> where the built result deliberately departs from what is written below:
+>
+> - **Section 3.4 was reversed.** An earlier draft collected the failure modes
+>   into their own Part on "LLM psychology". They are now the closing section
+>   of the chapter that explains each one, because none of them is a new
+>   subject — tokenization is why it cannot spell, fixed compute per token is
+>   why it cannot count. Grouped, they read as a list of quirks; attached to
+>   their mechanism, each is a prediction of the architecture.
+> - **Per-figure checks (5.2) are thin by design.** The mechanism is proven and
+>   four figures use it. Adding the other eighty-two is not obviously worth it:
+>   the value is concentrated in figures whose whole claim is that their
+>   arithmetic is checkable, and most figures do not make that claim.
+>
+> Known and deliberately not done: nobody has read the ~8,000 new lines as
+> continuous prose. The harness proves the figures are correct; it cannot tell
+> you whether eleven authors sound like one book.
+
 ---
 
 ## 1. How Karpathy actually teaches
