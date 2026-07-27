@@ -81,7 +81,7 @@ export function parallelWidget() {
 
   const verdict = el('div', { style: { fontSize: '0.82rem', color: 'var(--fig-ink)', margin: '0.4rem 0 0.2rem' } });
   const note = el('div', { class: 'w-note' },
-    'The model: one elementary step is one matrix multiply on one unit. A recurrence must do T of them back to back, so adding hardware changes nothing — the chain is the clock. Attention does T² of them with no ordering constraint, so P units finish in T²/P, down to the depth of the summing reduction, log₂T. Break-even is therefore P = T, exactly. Causal masking halves attention’s work and memory traffic is ignored here; both shift the numbers, neither changes the shape.');
+    'The model: one elementary step is one matrix multiply on one unit. A recurrence must do T of them back to back, so adding hardware changes nothing — the chain is the clock. Attention does T² of them and none of them has to wait for another, so P units split the work and finish in T²/P. There is a floor under that. The results still have to be added together, and adding T numbers takes about log₂T rounds of pairing them off no matter how many units you own, so attention can never drop below log₂T steps. Break-even is therefore exactly one unit per token, P = T. Two things are left out: a language model only ever looks backwards, which halves attention’s work, and the time spent moving numbers to and from memory is ignored entirely. Both shift the numbers; neither changes the shape.');
 
   /* ---- live update ------------------------------------------------------- */
   function update() {

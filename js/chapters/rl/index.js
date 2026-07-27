@@ -15,7 +15,7 @@
      fig-verifiable.js   key 'verifiable'  — a checker vs a learned judge
      scene-hacking.js    key 'hacking'     — the judge has seams               */
 
-import { chapter, chapterHead, prose, term, mathAside, takeaway, chRef, figRef } from '../../core/components.js';
+import { chapter, chapterHead, prose, term, goDeeper, takeaway, chRef, figRef } from '../../core/components.js';
 import { pct } from '../../core/anim.js';
 
 import { schoolFigure } from './fig-school.js';
@@ -46,6 +46,7 @@ export function render({ id, num, title }) {
     term('rollout', 'n.', 'one sampled attempt at a prompt — the model&rsquo;s own tokens from start to finish, generated at temperature above zero, with nothing supervising the middle. RL&rsquo;s unit of experience'),
 
     prose(
+      `One piece of vocabulary comes with the territory, and it is worth meeting head-on because the rest of this chapter uses it. In reinforcement learning, the thing being trained is whatever decides what to do next; here that is the model choosing its next token, and the standard name for it is the <strong>policy</strong>. It is the same network it has been since ${chRef('tokens')}. Only the name changes when the training loop does.`,
       `What remains, once the demonstration is deleted, is guess and check at scale. It is not elegant, and it is exactly what practice is.`),
 
     rolloutsScene(),
@@ -54,12 +55,13 @@ export function render({ id, num, title }) {
       `<em>${figRef('rl', 'rollouts')} — many rollouts per prompt, scored against the printed answer, then a step toward the ones that arrived. Counts are illustrative; the second round is the point.</em>`,
       `Note what the loop never does. It never reads the reasoning, never decides that one correct solution is more elegant than another, and never repairs a step. It asks only whether the final answer matched, and reinforces the tokens of the attempts where it did. The method the model ends up with is whatever survives that filter — a method discovered by the model, for the model, which is precisely the thing an annotator could not have supplied.`),
 
-    mathAside('what a group of attempts is worth', `
-      <p>With per-attempt success probability q, a group of ${G} rollouts contains at least one success with probability 1 − (1−q)<sup>${G}</sup>:</p>
-      <div class="eq">q = 0.10 → 1 − 0.90¹⁵ = ${pct(anySuccess(0.10), 1)}
-q = 0.01 → 1 − 0.99¹⁵ = ${pct(anySuccess(0.01), 1)}</div>
-      <p>Sampling turns a model that is usually wrong into a training signal, which is why the group is drawn at temperature above zero rather than greedily. But a group only informs when it <em>disagrees with itself</em>: if all ${G} attempts succeed, or all ${G} fail, every attempt carries the same reward, the group-relative advantage of ${chRef('posttraining')} is zero for all of them, and the prompt contributes nothing to the update.</p>
-      <p>So the practice problems that teach are the ones the model already solves sometimes — hard enough to fail, easy enough to hit. Capability grows outward from the edge of what the base model can already do rather than from nothing, and choosing prompts near that edge is a live engineering problem, not a detail.</p>`),
+    goDeeper('what a group of attempts is worth', `
+      <p><strong>Why sample ${G} attempts instead of one?</strong> Because a model that is usually wrong is still worth training on, as long as it is not <em>always</em> wrong. Say it gets some problem right one time in ten. Ask once and you will most likely get a failure, and a failure on its own teaches nothing — there is no correct answer in it to reinforce. Ask ${G} times and the chance that every one of them misses is 0.9 multiplied by itself ${G} times, about ${pct(1 - anySuccess(0.10), 1)}. So roughly ${pct(anySuccess(0.10), 1)} of the time at least one attempt lands, and that attempt is a worked solution the model produced itself.</p>
+      <div class="eq">1 attempt in 10 succeeds  →  ${G} attempts contain a success ${pct(anySuccess(0.10), 1)} of the time
+1 attempt in 100 succeeds  →  ${G} attempts contain a success ${pct(anySuccess(0.01), 1)} of the time</div>
+      <p>This is also why the attempts are <em>sampled</em> rather than taken greedily. ${G} deterministic attempts would be ${G} copies of one answer; the randomness of ${chRef('base-model')} is what makes the group a group.</p>
+      <p><strong>But a group only teaches when it disagrees with itself.</strong> Look again at what the update uses (${chRef('posttraining')}): each attempt is scored against the average of its own group. If all ${G} succeed, every attempt is exactly average. If all ${G} fail, every attempt is exactly average again. Either way there is nothing above the line and nothing below it, so nothing is reinforced and nothing is discouraged — you paid for ${G} attempts and bought no learning at all.</p>
+      <p><strong>Which quietly decides what you can train on.</strong> The practice problems that teach are the ones the model already solves <em>sometimes</em>: hard enough to fail, easy enough to hit. A problem it never solves is silent; so is one it always solves. Capability therefore grows outward from the edge of what the base model can already do rather than from nothing — and keeping a set of prompts parked on that edge, while the edge keeps moving, is a live engineering problem rather than a detail.</p>`),
 
     prose(
       `<strong>Run the loop long enough and behavior appears that nobody specified.</strong> DeepSeek&rsquo;s R1 report (2025) is the cleanest public record of it. Across one RL run, accuracy on competition mathematics climbs — and the average length of the model&rsquo;s answers climbs with it. The second curve is the surprising one, because nothing in the reward mentions length. The reward is one bit about the final answer.`),
@@ -67,7 +69,7 @@ q = 0.01 → 1 − 0.99¹⁵ = ${pct(anySuccess(0.01), 1)}</div>
     emergenceFigure(),
 
     prose(
-      `Read the traces and the extra tokens are not padding. The model is going back over a step it is unsure of, trying a second decomposition, checking a case it skipped — the reported traces contain lines like <em>wait, let me re-evaluate that</em> arriving in the middle of a derivation. Those are cognitive strategies, and they were discovered rather than taught: no annotator wrote a demonstration containing them, and no term in the objective asks for them. They exist because, on a problem whose answer is checkable, re-checking your work raises the probability of being right, and the optimizer found that out on its own. It is the strongest thing that can be said for the whole apparatus — the one part of training able to produce something the training data does not contain.`,
+      `Read the traces and the extra tokens are not padding. The model goes back over a step it has already finished, works the problem a second way alongside the first, and returns to a case it skipped — the reported traces contain lines like <em>wait, let me re-evaluate that</em> arriving in the middle of a derivation. Those are cognitive strategies, and they were discovered rather than taught: no annotator wrote a demonstration containing them, and no term in the objective asks for them. They exist because, on a problem whose answer is checkable, re-checking your work raises the probability of being right, and the optimizer found that out on its own. It is the strongest thing that can be said for the whole apparatus — and it is worth saying carefully, because it is exactly the point under dispute. Whether the optimizer is <em>adding</em> these strategies, or only concentrating the model on ones the base model could already stumble into occasionally, is an open empirical question with results on both sides; the section at the end of this chapter lays out the challenge.`,
       `<strong>Which points at what imitation cannot do.</strong> A model fit to expert demonstrations is bounded by those experts: it is scored on similarity to them, so matching them is the ceiling, and in practice it lands below. The cleanest evidence on record is AlphaGo, because both curves were published side by side.`),
 
     alphagoFigure(),
@@ -96,6 +98,6 @@ q = 0.01 → 1 − 0.99¹⁵ = ${pct(anySuccess(0.01), 1)}</div>
     term('discriminator–generator gap', 'n.', 'the observation that judging which of several outputs is better is far easier than producing the best one — the leading, unproven explanation for why preference-ranked feedback outperforms an equal budget of written demonstrations'),
 
     takeaway(
-      `The three kinds of textbook content are the three stages of training, and only the last can teach a model something its teachers did not know. Give a problem with a checkable answer, sample many attempts, keep the tokens of the ones that arrived — and behavior nobody wrote down, including going back over its own work, falls out of the optimization. Where the check is real the loop runs as long as it pays; where the check is a learned model of a person, the loop finds that model&rsquo;s seams and you crop the run. Everything now sold as reasoning rests on which side of that line a domain sits.`),
+      `The three kinds of textbook content are the three stages of training, and only the last one lets the model go looking for something nobody wrote down for it. Give a problem with a checkable answer, sample many attempts, keep the tokens of the ones that arrived — and behavior nobody wrote down, including going back over its own work, falls out of the optimization. Where the check is real the loop runs as long as it pays; where the check is a learned model of a person, the loop finds that model&rsquo;s seams and you crop the run. Everything now sold as reasoning rests on which side of that line a domain sits.`),
   );
 }

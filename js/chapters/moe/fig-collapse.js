@@ -29,7 +29,7 @@ export function collapseFigure() {
   const t0Label = txt(x0, 40, 'expert traffic — starts uniform', { size: 11, fill: PAL.tx });
   const collapseLabel = txt(W / 2, 32, 'rich get richer: traffic → gradient → better → more traffic', { size: 11.5, fill: PAL.loss, anchor: 'middle' });
   const qbLine = svg('line', { x1: x0 - 6, y1: baseY - u, x2: x0 + N * (bw + gap), y2: baseY - u, stroke: PAL.moe, 'stroke-width': 1.2, 'stroke-dasharray': '5 4' });
-  const qbLabel = txt(W / 2, 40, 'Quantile Balancing — allocation from router-score quantiles, no tuned coefficient', { size: 11.5, fill: PAL.moe, anchor: 'middle' });
+  const qbLabel = txt(W / 2, 40, 'Quantile Balancing — sort the scores, cut at an even share, nothing left to tune', { size: 11.5, fill: PAL.moe, anchor: 'middle' });
 
   const root = svgRoot(W, H, {
     role: 'img',
@@ -37,7 +37,7 @@ export function collapseFigure() {
   }, axis, bars, overlays, xl, xr, yLab, t0Label, collapseLabel, qbLine, qbLabel);
 
   const node = figure(
-    `the routing feedback loop, and its fix. Left alone, early-lucky experts absorb the traffic and the gradient while the rest atrophy; K3&rsquo;s Quantile Balancing derives each expert&rsquo;s allocation directly from the router-score quantiles, with no hand-tuned coefficient to get wrong.`,
+    `the routing feedback loop, and its fix. Left alone, early-lucky experts absorb the traffic and the gradient while the rest atrophy. K3&rsquo;s Quantile Balancing puts each expert&rsquo;s scores in order and cuts the list at the point that leaves it an even share of the traffic, so balance falls out of the sorting rather than out of a number somebody picked by hand.`,
     root, { wide: true, key: 'collapse' });
 
   return pin(node, (p) => {

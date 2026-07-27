@@ -146,8 +146,8 @@ export function boundaryWidget() {
     toggle.textContent = `nonlinearity σ: ${S.on ? 'on' : 'off'}`;
     toggle.classList.toggle('sel', S.on);
     caption.textContent = S.on
-      ? 'score field — level sets bend around the data'
-      : 'score field — level sets are parallel straight lines, always';
+      ? 'score field — the contours of equal score bend around the data'
+      : 'score field — the contours are parallel straight lines, always';
   }
 
   update();

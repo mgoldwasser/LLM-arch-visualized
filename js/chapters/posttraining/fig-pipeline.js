@@ -3,7 +3,7 @@
    Figure number is claimed by figure(); key 'pipeline'. */
 
 import { svg, svgRoot } from '../../core/dom.js';
-import { figure, txt, PAL } from '../../core/components.js';
+import { figure, txt, PAL, chRef } from '../../core/components.js';
 import { seg, ease } from '../../core/anim.js';
 import { pin } from '../../core/scroll.js';
 import { K3 } from '../../../data/k3.js';
@@ -68,7 +68,7 @@ export function pipelineFigure() {
   }, defs, boxNodes, arrows, compBase, compPre, compSFT, compRL, compLabIn, compLab);
 
   const fig = figure(
-    `the post-training pipeline. K3 applies quantization-aware training (${K3.weightsFormat.split(' ')[0]}) from the SFT stage onward.`,
+    `the post-training pipeline. From fine-tuning onward, K3 is trained with its weights already rounded to the coarse, few-bit form it will be served in (${K3.weightsFormat.split(' ')[0]}), so nothing has to be thrown away at the end &mdash; ${chRef('inference')} explains why that rounding is worth doing.`,
     root, { wide: true, key: 'pipeline' });
 
   return pin(fig, (p) => {

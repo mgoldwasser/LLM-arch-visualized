@@ -17,7 +17,7 @@ export function variantsFigure() {
     { name: 'MHA', sub: '2017 · every head owns K,V', val: mha, label: `${BP.heads} heads × K,V = ${mha.toLocaleString('en-US')} values/token`, inside: true },
     { name: 'MQA / GQA', sub: 'heads share K,V sets', val: gqa, label: `8 groups → ${gqa.toLocaleString('en-US')}  (8× smaller)` },
     { name: 'MLA', sub: 'DeepSeek, K2 · one latent', val: mla, label: '~576 — decompressed on the fly' },
-    { name: 'Gated MLA + KDA', sub: 'K3 · linear-attention state', val: 0, label: 'constant-size state — cost O(T), not O(T²)' },
+    { name: 'Gated MLA + KDA', sub: 'K3 · linear-attention state', val: 0, label: 'one fixed-size state — nothing per token to hold' },
   ];
   const x0 = 190, maxW = 420, y0 = 78, dy = 62;
   const els = rows.map((row, i) => {

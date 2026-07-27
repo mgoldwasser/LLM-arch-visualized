@@ -48,7 +48,7 @@ export function grpoFigure() {
     txt(86, 84, 'attempt (chain of thought)', { size: 10 }),
     txt(445, 84, 'verifier', { size: 10, anchor: 'middle' }),
     txt(498, 84, 'reward r', { size: 10, anchor: 'middle' }),
-    txt(620, 84, '(rᵢ − r̄)/σ', { size: 10, anchor: 'middle' }));
+    txt(620, 84, 'advantage vs. group', { size: 10, anchor: 'middle' }));
 
   const meanX = 470 + 0.375 * 56;
   const meanLine = svg('line', { x1: meanX, y1: 90, x2: meanX, y2: rowY(G - 1) + 16, stroke: PAL.weight, 'stroke-width': 1.2, 'stroke-dasharray': '4 4', opacity: 0 });

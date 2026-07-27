@@ -74,7 +74,7 @@ export function worldsFigure() {
     const head = svg('g', { opacity: 0 },
       svg('rect', { x, y: HEAD_Y, width: COLW, height: 26, rx: 6, fill: 'rgba(90,200,220,0.10)', stroke: PAL.act, 'stroke-width': 1.1 }),
       txt(cx, HEAD_Y + 18, c.t.trim(), { size: 12, fill: PAL.act, anchor: 'middle', mono: true }),
-      txt(cx, HEAD_Y + 42, `u = ${u.toFixed(3)}  →  p = ${(PROBS[di] * 100).toFixed(1)}%`, { size: 9, anchor: 'middle', mono: true }));
+      txt(cx, HEAD_Y + 42, `landed at ${u.toFixed(3)} · this token had ${(PROBS[di] * 100).toFixed(1)}%`, { size: 9, anchor: 'middle', mono: true }));
     const lines = c.cont.map((s, i) => txt(x + 4, 272 + i * 15, s, { size: 10.5, fill: PAL.act, mono: true, opacity: 0 }));
     const vcol = c.ok ? PAL.ink : PAL.loss;
     const verdict = svg('g', { opacity: 0 },
@@ -94,7 +94,7 @@ export function worldsFigure() {
      worlds.map((w) => [w.link, w.dart, w.head, w.lines, w.verdict]), note);
 
   const fig = figure(
-    `one prompt, three draws. The bar is the distribution at the divergence point; each dart is the uniform value the sampler actually produced (seeded, so the page renders identically every load). The continuations are illustrative, but the failure they show is the real one: two of the three are assembled from the right neighbourhood and the wrong facts, and the model has no channel on which to say which is which.`,
+    `one prompt, three draws. The bar is the distribution at the point where the continuations part company, laid out end to end so that every candidate token owns a stretch of the bar as wide as its probability. Drawing a token is then a physical act: pick a number between 0 and 1 at random and take whichever stretch that number falls in. Each dart is one such number, and the readout beneath it says where the dart landed and how likely the token it hit was. The numbers are seeded, so the page renders identically every load. The continuations are illustrative, but the failure they show is the real one: two of the three are assembled from the right neighbourhood and the wrong facts, and the model has no channel on which to say which is which.`,
     root, { wide: true, key: 'worlds' });
 
   return pin(fig, (p) => {
