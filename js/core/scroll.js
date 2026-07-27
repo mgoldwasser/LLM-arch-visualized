@@ -66,6 +66,12 @@ function schedule() {
 
 export function refresh() {
   forceNext = true;
+  // Drop the memoized progress too. A resize can leave p unchanged while the
+  // geometry underneath it moved — a scene's cards are laid out against the
+  // new viewport but were last painted against the old one — and the
+  // `p !== entry.last` guard would otherwise skip the repaint until the
+  // reader happens to scroll.
+  for (const entry of tracked) entry.last = -1;
   schedule();
 }
 

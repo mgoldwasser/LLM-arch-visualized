@@ -25,7 +25,7 @@ export function createScene({ id, steps, figure, cols = true, stepVh }) {
   const sticky = el('div', { class: 'scene-sticky' }, canvas);
 
   const stepEls = steps.map((s, i) =>
-    el('div', { class: 'scene-step', dataset: { step: i }, style: stepVh ? { minHeight: stepVh + 'vh' } : null },
+    el('div', { class: 'scene-step', dataset: { step: i } },
       el('div', { class: 'step-card' },
         s.n ? el('div', { class: 'step-n' }, s.n) : null,
         el('div', { class: 'step-body', html: s.html })))
@@ -35,6 +35,12 @@ export function createScene({ id, steps, figure, cols = true, stepVh }) {
   const track = cols
     ? el('div', { class: 'scene-track scene-cols' }, stepsCol, sticky)
     : el('div', { class: 'scene-track' }, sticky, stepsCol);
+
+  // A custom property rather than an inline min-height: inline styles beat
+  // media queries, so a scene asking for tall steps would keep them in the
+  // stacked mobile layout, where they leave the reader staring at nothing
+  // between cards.
+  if (stepVh) track.style.setProperty('--step-vh', stepVh + 'vh');
 
   const root = el('section', { class: 'scene wide', id }, track);
 
@@ -49,16 +55,20 @@ export function createScene({ id, steps, figure, cols = true, stepVh }) {
      lower edge, so it is gone before it reaches the artwork rather than
      sliding across it. Purely a function of geometry, so it rewinds on
      reverse scroll like everything else. */
-  const FADE = 150;                     // px over which a card fades out
   function fadeCards() {
     if (!mq.matches) {
       for (const c of cards) c.style.opacity = '';
       return;
     }
     const edge = sticky.getBoundingClientRect().bottom;
+    const room = window.innerHeight - edge;   // strip the cards travel through
     for (const c of cards) {
-      const gap = c.getBoundingClientRect().top - edge;
-      c.style.opacity = clamp(gap / FADE).toFixed(3);
+      const r = c.getBoundingClientRect();
+      // Spend on the fade whatever room is left once the card itself fits.
+      // A fixed distance reads well on a large phone and swallows a tall card
+      // whole on a small one, where the card only just fits below the figure.
+      const fade = Math.min(150, Math.max(40, room - r.height));
+      c.style.opacity = clamp((r.top - edge) / fade).toFixed(3);
     }
   }
 
