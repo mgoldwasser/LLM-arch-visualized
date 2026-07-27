@@ -1,10 +1,11 @@
 /* Tokens & embeddings. From text to vectors the model can touch.
-   Spine only — the BPE scene lives in scene-bpe.js, the embedding-lookup
-   figure in fig-embedding.js. */
+   Spine only — the representation ladder lives in scene-ladder.js, the BPE
+   scene in scene-bpe.js, the embedding-lookup figure in fig-embedding.js. */
 
 import { chapter, chapterHead, prose, term, mathAside, claimFig, chRef, figRef } from '../../core/components.js';
 import { si } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
+import { sceneLadder } from './scene-ladder.js';
 import { sceneBpe } from './scene-bpe.js';
 import { figEmbedding } from './fig-embedding.js';
 
@@ -18,7 +19,15 @@ export function render({ id, num, title }) {
     term('byte-pair encoding', 'n.', 'iteratively replace the most frequent adjacent symbol pair with a new symbol; the learned merge list is then applied greedily at inference'),
   ];
 
-  // The scene's caption lives in the prose paragraph that follows it.
+  // Each scene's caption lives in the prose paragraph that follows it, so the
+  // number is claimed here, in the order the reader meets it.
+  const ladderFig = claimFig('ladder');
+  const ladder = sceneLadder();
+
+  const afterLadder = prose(
+    `<em>Fig. ${ladderFig} — the representation ladder. Sequence lengths are measured from the sentence itself; the token row is segmented by a miniature illustrative merge list rather than a production ${si(K3.vocab)}-entry one.</em>`,
+    `Read the ladder as a single trade, made once and then frozen for the life of the model. Bits give you a two-symbol alphabet and a sequence eight times longer than the byte string. Bytes give you 256 symbols and one position per byte. Merges buy positions back by spending vocabulary — and the two currencies are not exchanged at the same rate. Vocabulary is paid for once, in embedding rows and in the width of the output softmax (${figRef('tokens', 'embedding')}); sequence length is paid for on every token of every request, and attention makes that cost quadratic (${chRef('attention')}). BPE sits where it sits because of that asymmetry, and the rest of this chapter is what living with the compromise does to the model.`);
+
   const bpeFig = claimFig('bpe');
   const scene = sceneBpe();
 
@@ -29,6 +38,8 @@ export function render({ id, num, title }) {
 
   return chapter(id,
     head,
+    ladder,
+    afterLadder,
     scene,
     middle,
     figEmbedding(),
