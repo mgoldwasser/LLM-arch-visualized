@@ -82,10 +82,12 @@ a.xref:hover { text-decoration: none; border-bottom-color: var(--acc); }
   content: "";
   position: absolute;
   inset: -0.55rem 0 auto 0;
-  height: 5.8rem;
-  /* opaque for the full height of the title row, then a soft fade — otherwise
-     content passing underneath stays legible through the scrim */
-  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 58%, var(--bg-0) 100%);
+  /* Sized from the chrome itself, not a magic number: the title wraps to two
+     lines on a phone and one on a desktop, and a flat height either bleeds
+     text on the narrow case or washes over the pinned scene figure on the
+     wide one. Opaque past the last line of chrome content, then a soft fade. */
+  height: calc(100% + 1.2rem);
+  background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 74%, var(--bg-0) 100%);
   opacity: 0;
   transition: opacity var(--t-med) ease;
   z-index: -1;
