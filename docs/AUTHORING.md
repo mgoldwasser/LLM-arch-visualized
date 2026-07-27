@@ -124,9 +124,15 @@ badged *speculative · our proposal*, and should name its own failure modes and
 the cheapest experiment that would falsify it. Figures and scenes are welcome
 here too.
 
-**Part I (the foundations) is exempt.** Those chapters teach settled
-mathematics — vectors, networks, optimization, probability, sequence models —
-and close on a `takeaway()` instead.
+**Chapters that teach settled mathematics are exempt** and close on a
+`takeaway()` instead: vectors, networks, learning, probability, sequences.
+There is no live research frontier in the dot product.
+
+The rule is about the subject, not the Part. The objective chapter sits in
+Part I but carries a frontier, because *what to train on* is an open question
+even though the mathematics around it is not — the one-token-of-supervision
+bottleneck is a real and current constraint. If a Part I chapter ever acquires
+a genuine frontier, give it one.
 
 ### The consequence section (standing convention)
 

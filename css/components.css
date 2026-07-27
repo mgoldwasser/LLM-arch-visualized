@@ -351,9 +351,20 @@ body.dark .widget .w-badge { color: #0E1116; }
      screen — so a tall step leaves a long dead stretch after one card fades
      out and before the next rises into view. Sized so the next card is
      already on screen as the current one goes behind the artwork. */
-  .scene-step { min-height: 36vh; align-items: flex-end; padding-bottom: 3vh; }
-  .scene-step:first-child { min-height: 26vh; }
-  .scene-step:last-child { min-height: 34vh; }
+  /* A scene asking for tall steps (createScene stepVh) gets them scaled down
+     rather than ignored: 95vh on desktop becomes 52vh here, which keeps the
+     scrub range usable on a phone without reopening the dead-gap problem that
+     honouring the raw value caused. */
+  .scene-step {
+    min-height: max(36vh, calc(var(--step-vh, 0vh) * 0.55));
+    align-items: flex-end;
+    padding-bottom: 3vh;
+  }
+  /* The opening step must be tall enough that the first card enters BELOW the
+     pinned figure. At 26vh it started level with the artwork and covered it
+     until the first scroll frame faded it. */
+  .scene-step:first-child { min-height: max(40vh, calc(var(--step-vh, 0vh) * 0.5)); }
+  .scene-step:last-child { min-height: max(34vh, calc(var(--step-vh, 0vh) * 0.5)); }
   /* opacity is driven per-frame from geometry; don't fight it with the
      active/inactive rule or transition it. Tighter type as well: a card has
      to fit between the figure's lower edge and the bottom of the screen, or
@@ -363,6 +374,13 @@ body.dark .widget .w-badge { color: #0E1116; }
     transition: border-color var(--t-med) ease;
     padding: 0.9rem 1.05rem;
     max-width: none;          /* fill the capped track, matching the figure */
+    /* Park the card near the bottom of the screen for the length of its step.
+       Without this, step height is doing two jobs at once — it is the scene's
+       scrub range AND the distance between consecutive cards — so buying more
+       animation room necessarily opens a stretch where neither card is
+       readable. Parked, the two are independent. */
+    position: sticky;
+    bottom: 0.6rem;
   }
   .step-card .step-body { font-size: 0.87rem; line-height: 1.5; }
   .step-card .step-body p { margin: 0 0 0.55rem; }
@@ -391,7 +409,7 @@ body.dark .widget .w-badge { color: #0E1116; }
   .scene-step { min-height: 48vh; padding-bottom: 0; }
   .scene-step:first-child { min-height: 38vh; }
   .scene-step:last-child { min-height: 44vh; }
-  .scene-step .step-card { position: sticky; bottom: 0.6rem; padding: 0.75rem 0.95rem; }
+  .scene-step .step-card { padding: 0.75rem 0.95rem; }
   .step-card .step-n { font-size: 0.6rem; margin-bottom: 0.3rem; }
   .step-card .step-body { font-size: 0.82rem; line-height: 1.45; }
   .step-card .step-body p { margin: 0 0 0.45rem; }
@@ -592,10 +610,10 @@ body.dark .widget .w-badge { color: #0E1116; }
   border: 1px solid var(--hr);
   color: var(--sec);
 }
-.fr-status.fr-deployed { color: var(--c-moe); border-color: var(--c-moe); }
-.fr-status.fr-research { color: var(--acc); border-color: var(--acc); }
-.fr-status.fr-contested { color: var(--c-weight); border-color: var(--c-weight); }
-.fr-status.fr-speculative { color: var(--c-train); border-color: var(--c-train); }
+.fr-status.fr-st-deployed { color: var(--c-moe); border-color: var(--c-moe); }
+.fr-status.fr-st-research { color: var(--acc); border-color: var(--acc); }
+.fr-status.fr-st-contested { color: var(--c-weight); border-color: var(--c-weight); }
+.fr-status.fr-st-speculative { color: var(--c-train); border-color: var(--c-train); }
 
 .fr-novel { border: 1px dashed var(--c-train); background: var(--c-train-soft); }
 .fr-novel .fr-name { font-weight: 700; color: var(--ink); }

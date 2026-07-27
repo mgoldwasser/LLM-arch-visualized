@@ -202,9 +202,12 @@ cloud resolves sharply, answer correct. Step 2 asks a rare one: the cloud stays
 blurred, the answer that emerges is wrong and red. Step 3 fires a `search` tool
 call; retrieved text slides into the cyan strip; the same question now resolves
 crisply off the strip.
-*Test:* blur `stdDeviation` at step 2 > step 1; after step 3 the context strip's
-child count increases and the answer node's fill changes from `PAL.loss` to
-`PAL.act`; full reverse sweep restores `stdDeviation` and child count exactly.
+*Test:* blur `stdDeviation` at step 2 > step 1; after step 3 the number of
+context-strip lines with non-zero opacity increases, and the answer node's fill
+changes from `PAL.loss` to `PAL.act`; a full reverse sweep restores both
+exactly. (Assert on *opacity*, not `children.length` — creating DOM mid-sweep
+would violate the idempotence rule, so retrieved lines are pre-created and
+faded in.)
 
 ---
 
