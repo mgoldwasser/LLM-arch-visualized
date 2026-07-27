@@ -1,0 +1,164 @@
+/* ============================================================
+   The reel — the book's figures, back to back, without the prose.
+
+   Deliberately CSS-only over the real chapters: the reel mounts the SAME
+   modules the book does and then hides what it does not want. Nothing in
+   js/chapters/ knows this page exists, so the reel can never drift from the
+   book and can never break it.
+   ============================================================ */
+
+/* The book sets `scroll-behavior: smooth` so its TOC links glide. Here that is
+   actively wrong: it makes window.scrollTo() an ANIMATION, so both the
+   autoscroll (which sets a new target every frame) and the frame grabber
+   (which needs to be at an exact position before the shutter) are chasing a
+   target the browser is easing toward on its own clock. The reel has no
+   in-page links to glide, so turn it off outright. */
+html:has(body.reel) { scroll-behavior: auto; }
+
+/* ---- what the reel is not: every block of running prose ------------------- */
+
+.reel .prose,
+.reel .term,
+.reel .math-aside,
+.reel .spec,
+.reel .frontier,
+.reel .consequence,
+.reel .takeaway,
+.reel .toc,
+.reel .sources,
+.reel .step-body,
+.reel .hero .lede,
+.reel .hero .meta,
+.reel .hero-scroll-hint,
+.reel .chrome,
+.reel .minimap,
+.reel .progress-rail { display: none !important; }
+
+/* Figure captions are one line of context, not prose — keep them, quietly. */
+.reel .fig figcaption {
+  max-width: 46rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  font-size: 0.72rem;
+  opacity: 0.6;
+}
+
+/* ---- chapter titles become full-bleed cards ------------------------------ */
+
+.reel .chapter { margin-top: 0; }
+.reel .ch-head {
+  min-height: 46vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin-bottom: 0;
+}
+.reel .ch-head h2 { font-size: clamp(1.9rem, 5vw, 3.2rem); }
+.reel .ch-kicker { font-size: 0.8rem; }
+
+.reel .hero { min-height: 60vh; }
+.reel .hero h1 { font-size: clamp(2.2rem, 6vw, 4rem); }
+
+/* ---- scenes: keep the step LABEL, drop the paragraph --------------------- */
+
+/* With the body hidden a step card collapses to one line, which would also
+   collapse the scene's scrub range — the animation would flash past. Hold the
+   step height so every scene still gets its full run. */
+.reel .scene-step { min-height: 78vh; }
+.reel .scene-step:first-child { min-height: 56vh; }
+.reel .step-card {
+  padding: 0.5rem 0.9rem;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+.reel .scene-step.active .step-card { border-color: transparent; }
+.reel .step-n {
+  font-size: 0.86rem;
+  letter-spacing: 0.14em;
+  color: var(--acc);
+  margin: 0;
+}
+
+/* ---- the transport bar --------------------------------------------------- */
+
+.reel-bar {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem clamp(0.8rem, 3vw, 2rem);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--hr-soft);
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  color: var(--sec);
+}
+.reel-btn {
+  border: 1px solid var(--hr);
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 0.32rem 0.9rem;
+  font-size: 0.74rem;
+  cursor: pointer;
+  min-width: 5.6rem;
+}
+.reel-btn:hover { border-color: var(--acc); color: var(--acc); }
+.reel-speed { display: flex; align-items: center; gap: 0.45rem; white-space: nowrap; }
+.reel-speed input { width: 7rem; }
+.reel-progress {
+  flex: 1;
+  height: 3px;
+  background: var(--hr-soft);
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 3rem;
+}
+.reel-progress > span { display: block; height: 100%; width: 0; background: var(--acc); }
+.reel-pct { font-family: var(--mono); min-width: 2.6rem; text-align: right; }
+.reel-link { white-space: nowrap; }
+
+@media (max-width: 44rem) {
+  .reel-speed, .reel-link { display: none; }
+}
+
+/* Leave room for the bar so the last figure is never trapped under it. */
+.reel .article { padding-bottom: 12vh; }
+
+.reel-loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--mut);
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  z-index: 90;
+}
+
+/* ---- capture mode: strip the furniture so frames are pure figure ---------- */
+
+body.capturing .reel-bar,
+body.capturing .reel-loading { display: none !important; }
+
+/* Capture mode must be a pure function of scroll position, and .reveal is not:
+   it fades and lifts elements on a CSS transition when they first enter view,
+   so a frame shot 100ms after a seek differs from the same position shot a
+   second later. For a human that transition is the point; for the frame
+   grabber it is nondeterminism. Land everything immediately instead — the
+   scroll-driven animation, which is what the video is actually of, is
+   untouched. */
+body.capturing .reveal,
+body.capturing .reveal.in {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+body.capturing * { animation: none !important; }
