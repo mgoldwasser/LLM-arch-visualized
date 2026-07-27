@@ -16,7 +16,7 @@ export function blockCompareFigure() {
   // [leftLabel, rightLabel, diffIndex] — diffIndex −1 = unchanged
   const ROWS = [
     ['tokens + learned position table', 'tokens — RoPE lives in attention', 1],
-    ['LayerNorm → multi-head attention', 'RMSNorm → gated MLA + KDA', 2],
+    ['LayerNorm → multi-head attention', 'RMSNorm → compressed attention', 2],
     ['add, then LayerNorm on the path', 'add — identity path untouched', 0],
     ['LayerNorm → MLP: 4·d, GELU, biases', `RMSNorm → MoE: ${K3.experts.routed} gated experts`, 3],
     ['add, then LayerNorm on the path', 'add — identity path untouched', 0],
@@ -25,7 +25,7 @@ export function blockCompareFigure() {
   const DIFFS = [
     'post-norm → pre-RMSNorm: the identity path stays clean, so 60-layer stacks train without warmup fragility',
     `learned positions → RoPE: relative offsets, injected where they are used — inside attention (ch. ${chNum('attention')})`,
-    `MHA → gated MLA + KDA: compress the KV cache, go O(T) in most layers — the 1M-context enablers (ch. ${chNum('attention-scale')})`,
+    `attention rebuilt to store less per past token — in most layers a fixed amount: the million-token enabler (ch. ${chNum('attention-scale')})`,
     `one 4·d MLP → ${K3.experts.routed} small experts, SwiGLU-family (K3: SiTU): capacity without FLOPs (ch. ${chNum('moe')})`,
     'biases, tying, dropout → deleted: fewer knobs, same loss, more stable training',
   ];

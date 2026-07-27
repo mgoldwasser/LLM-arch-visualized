@@ -56,6 +56,23 @@ export function mathAside(title, bodyHtml) {
     el('div', { class: 'body', html: bodyHtml })));
 }
 
+/* Collapsible "▸ Going deeper — …" aside, for CONCEPT rather than algebra.
+
+   The distinction from mathAside() is the whole point. That one is labelled
+   "The math — … (optional)", which correctly tells a non-mathematical reader
+   to skip it — so anything filed there is lost to exactly the reader who most
+   needs it. Explanations of WHY a thing is the way it is belong here instead,
+   where skipping is a choice about depth rather than about notation.
+
+   The main path should still stand alone without either. */
+export function goDeeper(title, bodyHtml) {
+  return reveal(el('details', { class: 'math-aside deeper measure' },
+    el('summary', {},
+      el('span', {}, `Going deeper — ${title}`),
+      el('span', { class: 'opt' }, 'if you want it')),
+    el('div', { class: 'body', html: bodyHtml })));
+}
+
 /* Figure with dark canvas + caption. content is a node (usually <svg>).
 
    The figure NUMBER IS NOT PASSED IN — it is claimed automatically, in call

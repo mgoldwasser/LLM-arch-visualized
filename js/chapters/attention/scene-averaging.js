@@ -58,7 +58,7 @@ export function averagingScene() {
        opening card starting level with the artwork rather than below it.
        The stacked layout scales this down (see css/components.css); its
        effect here is to give step one enough room to clear the figure. */
-    stepVh: 104,
+    stepVh: 90,
   });
 }
 

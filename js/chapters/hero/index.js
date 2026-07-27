@@ -12,12 +12,14 @@ import { K3 } from '../../../data/k3.js';
    measured pace for this article's scroll-driven scenes. */
 const MINUTES_PER_CHAPTER = 6;
 
+/* Every stat has to mean something to a reader on page one, so each label
+   spells out the quantity rather than naming the machinery behind it. */
 const STATS = [
-  ['2.8T', 'total parameters'],
-  ['~50B', 'active per token'],
-  ['16<em>/</em>896', 'experts routed'],
-  ['1M', 'token context'],
-  ['13', 'params to steer it'],
+  ['2.8T', 'learned numbers (parameters)'],
+  ['~50B', 'parameters used per token'],
+  ['16<em>/</em>896', 'sub-networks run per token'],
+  ['1M', 'tokens it can read at once'],
+  ['13', 'numbers to retune its behavior'],
 ];
 
 function ambientTokens() {

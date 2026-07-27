@@ -2,7 +2,7 @@
    Spine only — the representation ladder lives in scene-ladder.js, the BPE
    scene in scene-bpe.js, the embedding-lookup figure in fig-embedding.js. */
 
-import { chapter, chapterHead, prose, term, mathAside, claimFig, chRef, figRef } from '../../core/components.js';
+import { chapter, chapterHead, prose, term, mathAside, goDeeper, claimFig, chRef, figRef } from '../../core/components.js';
 import { si } from '../../core/anim.js';
 import { K3 } from '../../../data/k3.js';
 import { sceneLadder } from './scene-ladder.js';
@@ -43,9 +43,12 @@ export function render({ id, num, title }) {
     scene,
     middle,
     figEmbedding(),
-    mathAside('Why subwords? The case against characters and words', `
-      <p><strong>Characters/bytes:</strong> sequences get ~4× longer, and self-attention cost grows quadratically in sequence length (${chRef('attention')}) — you pay ~16× compute for the same text, and long-range structure gets harder to learn. <strong>Whole words:</strong> the vocabulary explodes (morphology, names, typos, code identifiers, other languages), and anything unseen at training time becomes an unrepresentable out-of-vocabulary hole.</p>
-      <p>Subwords interpolate: common strings are cheap single tokens, everything else decomposes gracefully. The cost is quirks — arithmetic on digit-chunks, “how many r’s in strawberry” — that live in the tokenizer, not the transformer.</p>`),
+    goDeeper('Why subwords? The case against characters and words', `
+      <p><strong>The one-sentence version.</strong> There are two obvious ways to cut text into pieces &mdash; one piece per character, or one piece per word &mdash; and each fails badly, in opposite directions. Subwords are what you get by refusing both failures.</p>
+      <p><strong>Why not one piece per character?</strong> English runs to roughly four characters per token, so a character-level model reads about four times as many pieces for the same page of text. That would be merely annoying if the cost rose in step with the length. It does not. Attention compares every token against every earlier one (${chRef('attention')}), so four times the pieces is something like sixteen times the comparisons &mdash; the same paragraph, for sixteen times the work. And the pieces themselves carry less: whatever relates <code>cat</code> to <code>dog</code> now has to be reassembled from six separate letters, and any pattern that spans a paragraph now spans four times as many positions.</p>
+      <p><strong>Why not one piece per word?</strong> Because the list never closes. You need entries for <code>run</code>, <code>runs</code>, <code>running</code>, <code>runner</code> and <code>rerun</code>; for every surname, brand and typo; for <code>getUserById</code> and every other identifier a programmer has ever invented; and then again for every language that is not English. The size is survivable. What is not survivable is the edge: a word the tokenizer never met while it was being built has no entry at all, so there is simply nothing to hand the model. That hole has a name &mdash; the word is <strong>out of vocabulary</strong> &mdash; and it is not a rare event, because ordinary text invents words constantly.</p>
+      <p><strong>What subwords buy.</strong> A merge list counted from real text spends its entries where they pay. <code>the</code>, <code>tion</code> and <code>import numpy</code> each earn a slot because they turn up relentlessly; an unusual surname does not, and gets spelled out of smaller pieces instead. Common text stays short, unusual text gets longer but is always writable, and because the pieces bottom out at raw bytes, nothing is ever unrepresentable. Nothing is out of vocabulary. Some things are just expensive.</p>
+      <p><strong>What it costs.</strong> The compromise does have a bill, and it arrives in one specific place: the model never sees inside a piece. <code>strawberry</code> is two or three opaque blocks, not ten letters, and a long number is chopped up by which digit strings are common rather than by place value. Those are the tokenizer&rsquo;s failures, not the transformer&rsquo;s &mdash; and the end of this chapter is what they look like from the outside.</p>`),
     mathAside('lookup as matrix multiply, tied unembedding', `
       <p>Writing token t as a one-hot vector eₜ ∈ ℝ<sup>V</sup>, the lookup is a matrix product that never gets materialized as one:</p>
       <div class="eq">x = eₜᵀ E</div>

@@ -57,7 +57,7 @@ export function vanishingFigure() {
     const dot = svg('circle', { r: 3.4, fill: PAL.loss, cx: xFor(0), cy: yFor(0) });
     return { g, path, label, dot, exploding };
   });
-  const explodeNote = txt(x1 + 6, yFor(Math.log10(magAt(1.1, KMAX))) - 14, '‖J‖ > 1', { size: 10, fill: PAL.loss });
+  const explodeNote = txt(x1 + 6, yFor(Math.log10(magAt(1.1, KMAX))) - 14, 'γ > 1', { size: 10, fill: PAL.loss });
 
   /* ---- guide line + live readouts ---------------------------------------- */
   const guide = svg('line', { x1: x0, y1: yTop - 4, x2: x0, y2: yBot, stroke: 'rgba(230,237,243,0.3)', 'stroke-width': 1, 'stroke-dasharray': '3 4' });
@@ -75,11 +75,13 @@ export function vanishingFigure() {
 
   const root = svgRoot(W, H, {
     role: 'img',
-    'aria-label': 'A logarithmic plot of gradient magnitude against the number of recurrent steps travelled backwards. Jacobian norms below one give straight lines sloping steeply downwards — a norm of 0.7 falls below one part in a million after about forty steps — while a norm of 1.1 climbs off the top of the plot, the exploding case.',
+    /* Kept in step with the visible caption: a screen-reader user should not
+       be handed harder vocabulary than a sighted one. */
+    'aria-label': 'A logarithmic plot of gradient magnitude against the number of recurrent steps travelled backwards. Where one step through the reused matrix shrinks the signal, the lines slope steeply downwards — shrinking to 0.7 of its size per step falls below one part in a million after about forty steps — while stretching it to 1.1 per step climbs off the top of the plot, the exploding case.',
   }, head, grid, curves.map((c) => c.path), curves.map((c) => c.label), explodeNote, guide, guideLab, curves.map((c) => c.dot), roHead, readouts.map((r) => [r.key, r.val]));
 
   const node = figure(
-    'the chain rule, iterated. Each recurrent step multiplies the gradient by roughly the same Jacobian norm γ, so the signal reaching k steps back scales as γᵏ — a straight line on a log axis. Anything below 1 vanishes into numerical noise within a few dozen steps; anything above 1 explodes. Only γ = 1 exactly would carry the signal intact, and that is a knife edge no learned matrix stays on.',
+    'the chain rule, iterated. Each recurrent step multiplies the gradient by roughly the same factor — call it γ, the amount one step through the reused matrix shrinks or stretches whatever passes back through it. So the signal reaching k steps back scales as γ multiplied by itself k times, γᵏ, which is a straight line on a log axis. Anything below 1 vanishes into numerical noise within a few dozen steps; anything above 1 explodes. Only γ = 1 exactly would carry the signal intact, and that is a knife edge no learned matrix stays on.',
     root, { wide: true, key: 'vanishing' });
 
   return pin(node, (p) => {

@@ -68,8 +68,8 @@ function calculatorBody() {
   const cTotal = cell('total parameters', true);
   const cActive = cell('active per token');
   const cRatio = cell('activation ratio');
-  const cMem4 = cell('weights @ 4-bit (MXFP4)');
-  const cMem16 = cell('weights @ bf16');
+  const cMem4 = cell('weights at 4 bits each');
+  const cMem16 = cell('weights at 16 bits each');
   const statGrid = el('div', { class: 'stat-grid' },
     cTotal.root, cActive.root, cRatio.root, cMem4.root, cMem16.root);
 

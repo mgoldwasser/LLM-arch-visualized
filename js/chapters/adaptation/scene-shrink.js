@@ -141,7 +141,7 @@ export function shrinkScene() {
     steps: [
       { n: 'Full fine-tuning', html: `<p>The whole matrix trains — all ~7,000,000,000 parameters of a 7B model, glowing green. And training it means carrying ≈16 bytes per parameter of gradients and Adam state on top. Every tuned task is a complete multi-gigabyte copy.</p>` },
       { n: 'LoRA', html: `<p>W freezes to amber. The update moves into two thin green strips: ΔW = BA through a tiny rank r. Only ~10–50 million parameters train — a megabytes-sized adapter, hot-swappable on one frozen base.</p>` },
-      { n: 'TinyLoRA', html: `<p>Even the strips collapse. The frozen SVD factors (amber) define the subspace; a fixed random projection P (gray — <em>never trained</em>) expands a tiny green vector v into the r×r update; one v is tied across every adapted layer.</p>` },
+      { n: 'TinyLoRA', html: `<p>Even the strips collapse. In amber, the handful of directions W already does its work along — read off the frozen matrix once, never trained. In gray, a fixed scrambling drawn at random at the start and then left alone: it expands the tiny green vector v into the small r×r update that sits between those frozen directions. That one v is shared across every adapted layer.</p>` },
       { n: 'Thirteen numbers', html: `<p>The entire fine-tune is v: 13 numbers, 26 bytes, steering a model that fills a data center. Nine orders of magnitude between the first frame and this one.</p>` },
     ],
   });

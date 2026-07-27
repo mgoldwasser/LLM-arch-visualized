@@ -137,7 +137,7 @@ export function servingScene() {
     steps: [
       { n: 'Prefill — whole prompt, one pass', html: `<p>All 8,000 prompt tokens are processed in <em>one parallel pass</em> — thousands of tokens' worth of matrix multiplies saturating the GPU. Compute-bound. This is the phase you experience as time-to-first-token.</p>` },
       { n: 'Decode — one token per step', html: `<p>Then generation: one token at a time, and every step must stream <em>all ~${si(K3.activeParams)} active weights</em> from memory to emit a single token. Bandwidth-bound — the arithmetic units sit mostly idle while the amber band streams past, again and again.</p>` },
-      { n: 'The KV cache', html: `<p>Attention needs every previous token's keys and values; recomputing them would make step <em>t</em> cost O(t). Instead they are computed once and cached — the new token computes q, k, v <em>only</em>, attends against the cache, and appends its own k, v.</p>` },
+      { n: 'The KV cache', html: `<p>Attention needs every previous token's keys and values. Recomputing them at every step would mean each token costs in proportion to how many came before it — the thousandth token a thousand times the first. Instead they are computed once and cached — the new token computes q, k, v <em>only</em>, attends against the cache, and appends its own k, v.</p>` },
       { n: 'The price', html: `<p>Cache memory grows linearly with context — the strip just keeps stretching. At a ${si(K3.contextWindow)}-token window that price is the whole ballgame, and the direct motivation for ${chRef('attention')}'s attention variants.</p>` },
     ],
   });

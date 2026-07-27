@@ -107,6 +107,10 @@ export const CORPUS = {
   bytesPerToken,
   tokens: surviving.bytes / bytesPerToken,
   keepAll: surviving.pages / entering.pages,
+  /* Pages and bytes survive at VERY different rates — most of what a crawled
+     page weighs is markup, which text extraction throws away — so the two must
+     never be quoted interchangeably. Roughly 6% of pages, but 0.19% of bytes. */
+  keepBytesAll: surviving.bytes / entering.bytes,
   get tokensPerDoc() { return this.tokens / this.docs; },
   drives: Math.ceil(surviving.bytes / DRIVE_BYTES),
 };

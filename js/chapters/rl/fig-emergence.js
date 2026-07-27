@@ -63,7 +63,7 @@ export function emergenceFigure() {
     ...[0, 2500, 5000, 7500, 10000].map((l) => txt(X1 + 10, yLen(l) + 4, l.toLocaleString('en-US'), { size: 9.5, anchor: 'start', mono: true })),
     ...[0, 2000, 4000, 6000, 8000].map((s) => txt(X0 + (s / STEPS) * (X1 - X0), Y0 + 20, s.toLocaleString('en-US'), { size: 9.5, anchor: 'middle', mono: true })),
     txt((X0 + X1) / 2, Y0 + 40, 'RL steps', { size: 10.5, fill: PAL.tx, anchor: 'middle' }),
-    svg('text', { x: 26, y: (Y0 + Y1) / 2, fill: PAL.train, 'font-size': 10.5, 'font-family': 'sans-serif', 'text-anchor': 'middle', transform: `rotate(-90, 26, ${(Y0 + Y1) / 2})` }, 'accuracy — AIME pass@1 (%)'),
+    svg('text', { x: 26, y: (Y0 + Y1) / 2, fill: PAL.train, 'font-size': 10.5, 'font-family': 'sans-serif', 'text-anchor': 'middle', transform: `rotate(-90, 26, ${(Y0 + Y1) / 2})` }, 'accuracy — AIME competition math (%)'),
     svg('text', { x: 700, y: (Y0 + Y1) / 2, fill: PAL.act, 'font-size': 10.5, 'font-family': 'sans-serif', 'text-anchor': 'middle', transform: `rotate(90, 700, ${(Y0 + Y1) / 2})` }, 'average response length (tokens)'));
 
   const accLabel = (t) => `${acc(t).toFixed(1)}%`;
@@ -93,7 +93,7 @@ export function emergenceFigure() {
   }, grid, lenLine, accLine, lenHead, accHead, accRead, lenRead, callout, note);
 
   const fig = figure(
-    `One run, two things happening at once: the model gets better, and its answers get longer. The length was never optimized — nothing in the reward mentions it. Given only <em>was the answer right</em>, the model discovers that going back over its own work pays, and spends tokens doing it. Curves generated from monotone fits to the shape reported for DeepSeek-R1-Zero (2025); endpoint accuracies are the paper&rsquo;s.`,
+    `One run, two things happening at once: the model gets better, and its answers get longer. The length was never optimized — nothing in the reward mentions it. Given only <em>was the answer right</em>, the model discovers that going back over its own work pays, and spends tokens doing it. AIME is a hard American high-school mathematics competition; accuracy is the share of its problems the model gets right, given one attempt each. Curves generated from monotone fits to the shape reported for DeepSeek-R1-Zero (2025); endpoint accuracies are the paper&rsquo;s.`,
     root, { wide: true, key: 'emergence' });
 
   return pin(fig, (p) => {

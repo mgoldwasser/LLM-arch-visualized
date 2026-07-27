@@ -133,6 +133,11 @@
   color: var(--sec);
   user-select: none;
 }
+/* goDeeper() shares the aside's shape but must not read as "skip me, it's
+   algebra" — a different marker colour is enough to tell them apart. */
+.math-aside.deeper { border-color: var(--hr); }
+.math-aside.deeper summary::before { color: var(--c-train, var(--acc)); }
+
 .math-aside summary::before {
   content: "\25B8";
   color: var(--acc);

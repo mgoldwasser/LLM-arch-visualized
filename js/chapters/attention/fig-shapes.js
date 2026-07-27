@@ -68,7 +68,7 @@ export function shapesFigure() {
   }, head, items, note1, note2);
 
   const node = figure(
-    'shape bookkeeping for one head. GQA shrinks the K,V boxes; MLA replaces them with a thin latent; KDA deletes the T×T object entirely.',
+    'shape bookkeeping for one head. Every variant at the end of the chapter is an edit to these boxes: some shrink the K and V blocks, some swap them for one much smaller summary, and some remove the T×T block altogether.',
     root, { wide: true, key: 'shapes' });
   return pin(node, (p) => {
     head.setAttribute('opacity', seg(p, 0.1, 0.16));

@@ -238,6 +238,28 @@ export async function svgIdsUnique() {
   });
 }
 
+/* ------------------------------------------- aside titles are TEXT, not HTML */
+
+/* mathAside(title, …) and goDeeper(title, …) set their summary via a text
+   node, so an HTML entity in a title renders literally — a reader sees
+   "Cauchy&rsquo;s" in the fold-out header. Nothing warns the author; the body
+   of the same aside DOES take HTML, so the inconsistency is easy to trip on.
+   Cheaper to assert than to remember. */
+export async function asideTitlesAreText() {
+  suite('content · aside titles render as text');
+  const bad = [];
+  for (const el of document.querySelectorAll('.math-aside > summary')) {
+    const t = el.textContent || '';
+    const m = t.match(/&[a-zA-Z]+;|&#\d+;/);
+    if (m) bad.push(`"${t.trim().slice(0, 60)}" contains ${m[0]}`);
+  }
+  await test('no aside title contains a raw HTML entity', (t) => {
+    t.ok(bad.length === 0, bad.length
+      ? `titles are inserted as text — use the literal character instead: ${bad.join('; ')}`
+      : `${document.querySelectorAll('.math-aside > summary').length} titles clean`);
+  });
+}
+
 export async function runContentChecks() {
   await registryWellFormed();
   await referencesResolve();
@@ -245,4 +267,5 @@ export async function runContentChecks() {
   await researchItemsWellFormed();
   await sectionConventions();
   await svgIdsUnique();
+  await asideTitlesAreText();
 }

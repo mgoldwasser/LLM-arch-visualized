@@ -13,25 +13,35 @@ export function render({ num }) {
   return frontier(num,
     bottleneck(`
       <p><strong>The base model is the least legible object in the whole pipeline, and every
-      question anyone actually wants to ask about it is currently unanswerable.</strong> Start with
-      the one the chapter ends on: the artifact has no internal boundary between reciting and
-      inventing. The same forward pass, the same softmax, the same draw produces a verbatim
-      encyclopedia lead and a confidently attributed fabrication, and no signal in the output
-      distinguishes them — a model that is uncertain about a fact and a model that is certain about
-      a fiction look identical at the token level, because both are mass sitting where the
-      corpus put it. Nobody can enumerate what a ${CKPT} checkpoint knows: there is no index, no
-      query interface, and no way to ask "is this in there" short of prompting and hoping. That
-      cuts both ways legally and practically — the same opacity that prevents a lab from certifying
-      that a copyrighted document is <em>not</em> recoverable prevents anyone from certifying that
-      a needed fact <em>is</em>. Memorization and generalization are not even cleanly separable
-      concepts here: the mechanism that reproduces a licence header verbatim is the mechanism that
-      generalizes, run at a different point on the same curve. And because the crawl has a closing
-      date, a permanent and invisible fraction of every base model's output is generated from genre
-      alone, with the fluency of the parts that were evidenced. Finally, nobody knows how much of a
-      finished assistant is <em>already in here</em> — whether post-training installs capability or
-      merely selects a persona from what pretraining built — which means nobody can price the
-      alignment stage against the pretraining stage, or say what releasing the raw file actually
-      hands to whoever downloads it.</p>`),
+      question anyone actually wants to ask about it is currently unanswerable.</strong></p>
+
+      <p>Start with the one the chapter ends on. Reciting and inventing are not two modes the
+      artifact switches between; they are the same operation. The same pass through the layers, the
+      same softmax, the same draw produces a verbatim encyclopedia lead and a confidently attributed
+      fabrication, and nothing in the output tells them apart. A model that is unsure of a fact and
+      a model that is sure of a fiction look identical at the token level, because in both cases the
+      probability is simply sitting where the corpus left it.</p>
+
+      <p>That has a sharper consequence than it first appears. Memorization and generalization are
+      not even separable concepts here. Predicting the next token from the weights is one act; when
+      the corpus repeated a passage often enough, that act lands on the original words, and when it
+      did not, the same act lands on something merely typical of writing like it. There is no
+      second mechanism doing the reciting. So there is no component to remove, no dial to turn down
+      that would suppress verbatim reproduction and leave the rest of the model intact.</p>
+
+      <p>Nor can anyone list what is in there. A ${CKPT} checkpoint has no index and no query
+      interface, and there is no way to ask "is this in there" short of prompting it and hoping.
+      That cuts both ways, legally and practically: the same opacity that stops a lab from
+      certifying that a copyrighted document is <em>not</em> recoverable stops anyone from
+      certifying that a needed fact <em>is</em>.</p>
+
+      <p>Two further gaps sit on top of that. Because the crawl has a closing date, a permanent and
+      invisible fraction of every base model's output is generated from genre alone, delivered with
+      the fluency of the parts that had evidence behind them. And nobody knows how much of a
+      finished assistant is <em>already in here</em> — whether post-training installs new capability
+      or merely picks out a persona that pretraining had already built. Until that is settled,
+      nobody can price the alignment stage against the pretraining stage, or say what releasing the
+      raw file actually hands to whoever downloads it.</p>`),
 
     researchItem('Memorization, extraction, and deduplication', '2021–23', 'research', `
       <p>Carlini et al.'s <em>Extracting Training Data from Large Language Models</em> (2021)
@@ -62,19 +72,30 @@ export function render({ num }) {
       question.</p>`),
 
     researchItem('What in-context learning actually is', '2022–23', 'contested', `
-      <p>Four incompatible accounts are live. Olsson et al. (Anthropic, 2022) identified
-      <strong>induction heads</strong> — attention circuits that find an earlier occurrence of the
-      current token and copy what followed it — forming at a training phase change that coincides
-      with the appearance of in-context learning; this is the mechanistic story. Xie et al. (2021)
-      frame it as <strong>implicit Bayesian inference</strong>: the prompt is evidence about which
-      latent document type is being generated, and the model conditions on it. Von Oswald et al.
-      (2023) and Dai et al. (2022) argue transformers can implement <strong>gradient descent in the
-      forward pass</strong>, constructing the update a small learner would have made from the
-      examples — elegant, demonstrated in constructed linear-regression settings, and not shown to
-      be what large models do on real prompts. Against all three, Min et al. (2022) found that
-      replacing demonstration labels with <em>random</em> ones barely hurts performance, which
-      suggests the examples often specify the task and the format rather than teaching a mapping.
-      Contested is the honest label: the phenomenon in ${figRef('base-model', 'icl')} is reliable and its
+      <p>Four incompatible accounts are live, and only the first has a mechanism anyone has been
+      able to point at inside a real model.</p>
+
+      <p>Olsson et al. (Anthropic, 2022) found what they called <strong>induction heads</strong>:
+      attention heads that do one specific thing. Given the token the model is currently looking at,
+      the head searches back through the context for an earlier place where that same token appeared,
+      and copies whatever came directly after it. That is most of what continuing a repeated pattern
+      takes: faced with the column in ${figRef('base-model', 'icl')}, a head of this kind can find the
+      earlier arrows and read off what sort of thing followed each one. These heads appear
+      abruptly during training, at a point where the loss curve visibly kinks, and in-context
+      learning appears at the same moment. That coincidence is the strongest evidence anyone has
+      that the two are the same thing.</p>
+
+      <p>The other three are shorter to state. Xie et al. (2021) argue the prompt is not teaching
+      anything at all — it is evidence about <em>what kind of document this is</em>, and the model,
+      which could already write documents of many kinds, simply narrows down to the right one. Von
+      Oswald et al. (2023) and Dai et al. (2022) argue the forward pass can carry out, internally,
+      the same sort of adjustment a small learner would have made from those examples — an elegant
+      result, demonstrated in stripped-down settings built for the purpose, and not shown to be what
+      large models do on real prompts. Against all three, Min et al. (2022) found that replacing the
+      answers in the examples with <em>random</em> ones barely hurts performance, which suggests the
+      examples often tell the model what task and what format rather than teaching it a mapping.</p>
+
+      <p>Contested is the honest label: the phenomenon in ${figRef('base-model', 'icl')} is reliable and its
       explanation is not.</p>`),
 
     researchItem('How much of the assistant was already there (LIMA, URIAL)', '2023', 'contested', `
@@ -105,26 +126,39 @@ export function render({ num }) {
 
     novelIdea('A recital detector, supervised by the corpus itself', `
       <p>The chapter's sharpest complaint is that nothing in the output marks the moment recall
-      becomes reconstruction. That boundary is invisible to the reader but it is <em>not</em>
-      invisible to the training lab, which has the corpus: for any generated span, a suffix-array
-      lookup answers "does this n-gram occur in the training data, and how often" exactly. Proposal:
-      use that lookup as an automatic label and fit a small linear probe on the base model's own
-      residual stream to predict, per token, the exposure count of the span it is currently
-      emitting. No human annotation is involved and no new objective touches the base weights — the
-      probe is read-only, and cheap enough to run alongside decoding. If it works, the serving stack
-      gets a per-token channel the model itself never had: a signal that the current sentence is
-      being reconstructed from documents of this genre rather than recalled from documents of this
-      content, which is the honest input to a hedge.</p>
-      <p>The failure modes are the interesting part. Corpus match is a proxy for memorization and
-      not memorization: an accurate paraphrase of a memorized fact scores as invention, and a
-      coincidental five-gram scores as recall. The probe may well learn <em>register</em> — the
-      confident encyclopedic voice — rather than provenance, in which case it fires hardest on
-      exactly the fluent fabrications it exists to catch, and its errors would be correlated with
-      the failure rather than independent of it. Suffix-array lookups over trillions of tokens are
-      expensive enough to make labeling a data-engineering project. And the probe is fitted to the
-      base model's representation, which post-training then moves. The cheapest falsification: hold
-      out a slice of the corpus before training, and test whether the probe separates continuations
-      of held-in documents from continuations of held-out ones better than a token-entropy baseline
-      does. If it cannot beat entropy, there is nothing here.</p>`),
+      becomes reconstruction. That boundary is invisible to the reader. It is <em>not</em> invisible
+      to the lab that did the training, because the lab still has the corpus. Take any run of words
+      the model has just emitted and you can look it up in the training data and count the hits —
+      exactly, not approximately. The right index makes that lookup fast even over trillions of
+      tokens.</p>
+
+      <p>So the corpus can grade the model's output for free, and that grading can be used to teach
+      something small to predict what the corpus would have said. The proposal: while the base model
+      runs, watch the numbers moving along its residual stream, and fit the simplest possible
+      readout on top of them — a weighted sum, one weight per number — trained to guess, for each
+      token as it comes out, how many times the passage being emitted appeared in the training data.
+      No human labels anyone. Nothing new is trained into the base model itself: the readout only
+      watches, changes no weight, and is cheap enough to run alongside normal decoding.</p>
+
+      <p>If it works, the serving stack gets a per-token channel the model itself never had — a
+      running signal that the current sentence is being rebuilt from documents that merely look like
+      this one, rather than recalled from documents that actually said this. That is the honest
+      input to a hedge.</p>
+
+      <p>The failure modes are the interesting part. Matching against the corpus is a stand-in for
+      memorization and is not memorization: a faithful paraphrase of a memorized fact would be
+      scored as invention, and five words that happen to coincide with something in the crawl would
+      be scored as recall. The readout may well pick up <em>register</em> — the confident
+      encyclopedic voice — rather than where the text came from, in which case it fires hardest on
+      exactly the fluent fabrications it exists to catch, and its mistakes would line up with the
+      failure instead of being independent of it. Counting occurrences across trillions of tokens is
+      expensive enough that producing the labels is a data-engineering project in its own right. And
+      the readout is fitted to the base model's internals, which post-training then moves.</p>
+
+      <p>The cheapest way to kill the idea: set aside a slice of the corpus before training, and see
+      whether the readout can tell continuations of documents the model saw from continuations of
+      documents it did not. It has to beat the free alternative — how spread out the model's own
+      next-token distribution is at that moment, which is already a rough measure of how undecided
+      it is. If it cannot beat that, there is nothing here.</p>`),
   );
 }

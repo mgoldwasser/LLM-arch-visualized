@@ -121,8 +121,8 @@ function normSceneFigure(canvas) {
     txt(546, 262, 'later refinements', { size: 10.5, fill: PAL.attn }),
     txt(546, 284, 'QK-norm:', { size: 11.5, fill: PAL.ink, mono: true }),
     txt(546, 300, 'RMSNorm(q), RMSNorm(k)', { size: 11, fill: PAL.tx, mono: true }),
-    txt(546, 316, '→ attention logits bounded,', { size: 10.5 }),
-    txt(546, 330, 'no more loss spikes from q·k', { size: 10.5 }),
+    txt(546, 316, '→ q·k products stay bounded,', { size: 10.5 }),
+    txt(546, 330, 'so the loss stops spiking', { size: 10.5 }),
     txt(546, 356, 'sandwich / peri-norm:', { size: 11.5, fill: PAL.ink, mono: true }),
     txt(546, 372, 'norm into AND out of each', { size: 10.5 }),
     txt(546, 386, 'sublayer (Gemma-2 lineage)', { size: 10.5 }));
@@ -190,10 +190,10 @@ export function normScene() {
     id: 'norm-placement',
     figure: normSceneFigure,
     steps: [
-      { n: 'STEP 1 / 4 — POST-NORM, 2017', html: `<p><strong>The original placement.</strong> Norm after every residual add — on the stream itself. Watch the gradient pulse descend: each on-path norm rescales it, and the rescalings compound with depth. Six layers train fine; sixty need warmup rituals and still walk a stability cliff. The 2017 recipe — post-norm plus warmup plus carefully tuned initialization — is a coupled system where touching any knob breaks the others.</p>` },
+      { n: 'STEP 1 / 4 — POST-NORM, 2017', html: `<p><strong>The original placement.</strong> Norm after every residual add — on the stream itself. Watch the gradient pulse descend: each on-path norm rescales it, and the rescalings compound with depth. Six layers train fine. Sixty train only if the learning rate is eased up from near zero over the first few thousand steps — <em>warmup</em> — and even then the run walks a stability cliff. Three things are locked together in that recipe: where the norm sits, how slowly the learning rate is raised, and how large the random weights are when the run begins. Move any one of them and the other two stop working.</p>` },
       { n: 'STEP 2 / 4 — PRE-NORM', html: `<p><strong>Move the norm into the branch.</strong> Now the residual path is a pure identity from loss to embedding: the pulse arrives at full strength no matter the depth. A fresh sublayer defaults to &ldquo;change nothing,&rdquo; so a 100-layer pre-norm stack trains from a cold start without warmup fragility. The one cost: the stream&rsquo;s magnitude grows layer by layer, which is why a final norm sits after the last block (you saw it in ${chRef('residual', { word: 'ch.' })}).</p>` },
       { n: 'STEP 3 / 4 — SIMPLIFY THE NORM ITSELF', html: `<p><strong>LayerNorm → RMSNorm.</strong> With placement solved, the formula shrank: delete mean-centering, delete the bias, keep the RMS rescale and the gain. Cheaper — one reduction instead of two, no bias parameters — and statistically indistinguishable in final loss. Every open frontier model since the Llama lineage ships RMSNorm, K3 included.</p>` },
-      { n: 'STEP 4 / 4 — MODERN REFINEMENTS', html: `<p><strong>Stability at scale, not quality.</strong> Two residual failure modes got their own norms. Query and key vectors can drift large during training, blowing up attention logits into loss spikes — <strong>QK-norm</strong> normalizes q and k right before the dot product, bounding the logits by construction. And some recent models (the Gemma-2 lineage) sandwich each sublayer with norms on <em>both</em> sides — &ldquo;peri-norm&rdquo; — buying extra headroom at large scale. Refinements, not revolutions: the pre-norm identity path is the part nobody touches.</p>` },
+      { n: 'STEP 4 / 4 — MODERN REFINEMENTS', html: `<p><strong>Stability at scale, not quality.</strong> Two residual failure modes got their own norms. Attention decides which tokens read which by multiplying pairs of vectors together (${chRef('attention', { word: 'ch.' })} builds the mechanism); those vectors can drift large over a long run, and then the products spike and the loss jumps with them. <strong>QK-norm</strong> puts a norm on both vectors immediately before that multiply, which caps the products by construction. And some recent models (the Gemma-2 lineage) sandwich each sublayer with norms on <em>both</em> sides — &ldquo;peri-norm&rdquo; — buying extra headroom at large scale. Refinements, not revolutions: the pre-norm identity path is the part nobody touches.</p>` },
     ],
   });
 }

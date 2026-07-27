@@ -23,12 +23,14 @@ export function render({ num }) {
       gradient step — the trainer spends most of its life doing inference. The supply of practice
       problems is finite and, worse, the useful ones are a moving band: a prompt whose group all
       succeeds or all fails contributes nothing, so a run continuously exhausts its own curriculum
-      and must be re-stocked at the model's advancing edge. And outcome supervision cannot tell a
-      right answer from a right answer reached by a wrong method — reward the final number and you
-      reward lucky arithmetic, unjustified guesses, and short-answer formats gameable by
-      elimination. (Process supervision, the direct attack on that, and the robustness of learned
-      reward models both sit in ${chRef('posttraining')}'s frontier; the questions here are the
-      ones downstream of them.)</p>`),
+      and must be re-stocked at the model's advancing edge. And the reward looks only at what the
+      model wrote last — the answer, not the working (<em>outcome supervision</em>) — so it cannot
+      tell a right answer from a right answer reached by a wrong method. Reward the final number
+      and you also reward lucky arithmetic, unjustified guesses, and short-answer formats a model
+      can beat by elimination. The direct attack on that is to score the reasoning line by line
+      rather than only the result (<em>process supervision</em>); that, and the question of how
+      robust a learned reward model can be made, both sit in ${chRef('posttraining')}'s frontier.
+      The questions here are the ones downstream of them.</p>`),
 
     researchItem('DeepSeek-R1 and R1-Zero', '2025', 'deployed', `
       <p>The result that made this chapter's argument public. R1-Zero applied large-scale RL with
@@ -57,12 +59,16 @@ export function render({ num }) {
       constants are not checkable; how far either axis extends before it flattens is unpublished
       and, in open replications, contested.</p>`),
     researchItem('Does RL create reasoning, or sharpen it? (Yue et al.)', '2025', 'contested', `
-      <p>A pointed empirical challenge: measure the base model and its RLVR-trained descendant at
-      large k under pass@k. RLVR reliably wins at k = 1 — and in several settings the base model
-      catches up or passes it at large k, suggesting the RL model's solutions were already inside
-      the base model's sampling distribution and that RL mostly concentrated probability on them
-      rather than adding new capability. Contested on method (pass@k at large k rewards a
-      diversity the RL model deliberately trades away; the benchmarks may be saturated;
+      <p>A pointed empirical challenge, and it turns on how you score. Give a model k attempts at
+      each problem and count the problem solved if any one of them lands: that is <strong>pass@k</strong>.
+      At k = 1 it is ordinary accuracy — one shot, one chance. At k = 256 it asks a much weaker
+      question: could the model have found this at all, given enough tries? Measure the base model
+      and its RLVR-trained descendant across a range of k. RLVR reliably wins at k = 1 — and in
+      several settings the base model catches up or passes it at large k, suggesting the RL model's
+      solutions were already inside the base model's sampling distribution and that RL mostly
+      concentrated probability on them rather than adding new capability. Contested on method
+      (scoring at large k rewards a diversity the RL model deliberately trades away; the benchmarks
+      may be saturated;
       distillation results point the other way), but it is the sharpest available statement of the
       question, and it lines up with this chapter's own arithmetic: a prompt teaches only when the
       model can already sometimes solve it.</p>`),
@@ -88,20 +94,22 @@ export function render({ num }) {
     novelIdea('Practice problems priced by disagreement', `
       <p>A run exhausts its own curriculum: every prompt whose group comes back all-correct or
       all-wrong contributes nothing, and the band of informative problems moves as the model
-      improves. Existing recipes handle this by <em>filtering</em> — DAPO's dynamic sampling drops
-      zero-signal groups after paying to generate them. Proposal: make the price a signal and put a
-      generator inside the loop. Maintain a small population of problem <em>families</em>
-      (templates with parameters, difficulty knobs, and a programmatic answer key). After each
-      batch, score every family by measured group variance per rollout spent — its realized
-      information per unit of generation cost — and let a bandit allocate the next batch's rollout
-      budget across families, while a cheap mutation operator proposes new family variants near the
-      ones currently scoring highest. The curriculum then tracks the model's edge automatically
+      improves. Existing recipes handle this by <em>filtering</em>: generate the group, notice that
+      it came back unanimous, throw it away. By then the generation has already been paid for.
+      Proposal: make the price a signal and put a generator inside the loop. Maintain a small
+      population of problem <em>families</em> (templates with parameters, difficulty knobs, and a
+      programmatic answer key). After each batch, score every family by how much its groups
+      disagreed with themselves per rollout spent — how much the family actually taught, per unit
+      of generation cost. Then send the next batch's rollout budget to the families scoring
+      highest, holding a slice back to re-test the ones that scored poorly in case the estimate was
+      noise. A cheap generator proposes new variants of whichever families are currently paying
+      best. The curriculum then tracks the model's edge automatically
       instead of being re-stocked by hand, and the budget stops being spent on problems whose
       outcome is already known.</p>
       <p>Failure modes, which are not incidental. High group variance is not the same as
       instructive: ambiguous wording, a wrong answer key, and a flaky extractor all produce
-      beautifully mixed groups, so the bandit will happily spend its whole budget on broken
-      problems unless variance is combined with an independent validity check. A generator co-trained
+      beautifully mixed groups, so the allocation will happily spend its whole budget on broken
+      problems unless disagreement is combined with an independent check that the problem is sound. A generator co-trained
       against the policy drifts toward whatever the policy currently fails at, which can be a
       narrow syntactic quirk rather than a capability. And because the policy's own behavior sets
       the difficulty, there is a degenerate equilibrium in which failing more attracts more budget —
