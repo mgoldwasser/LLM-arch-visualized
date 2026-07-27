@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Test harness — How a Trillion-Parameter Model Actually Works</title>
+
+  <!-- The real stylesheets. Layout invariants are only meaningful against the
+       CSS the reader actually gets, so nothing here is a test-only style
+       except the report panel below. -->
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+
+  <!--
+    THE ONE PIECE OF MACHINERY THAT MAKES THIS HARNESS POSSIBLE.
+
+    Every scroll-driven figure hands its update function to js/core/scroll.js
+    and keeps no other reference to it, so a test page cannot reach it through
+    the DOM. This import map rewrites that one module to test/shim-scroll.js,
+    which forwards every call to the real implementation and *also* keeps the
+    callback. Chapter modules import it as "../../core/scroll.js", which
+    resolves to the same URL the key names, so every chapter and extension in
+    the book is redirected — with no change to js/, no bundler, no build step.
+
+    The key is written relative to this document, so the harness works from any
+    directory the site happens to be served under.
+  -->
+  <script type="importmap">
+  {
+    "imports": {
+      "../js/core/scroll.js": "./shim-scroll.js"
+    }
+  }
+  </script>
+
+  <style>
+    /* Report panel — the only test-only CSS on the page. Fixed, so it takes
+       no space in the flow and cannot perturb a layout measurement. */
+    #report {
+      position: fixed; inset: 0 0 0 auto; z-index: 9999;
+      width: min(46rem, 46vw); min-width: 20rem;
+      display: flex; flex-direction: column;
+      background: #0E1116; color: #C4CCD5;
+      border-left: 1px solid rgba(230,237,243,0.14);
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    #report.collapsed { width: auto; min-width: 0; bottom: auto; }
+    #report.collapsed .r-status, #report.collapsed .r-body { display: none; }
+    .r-head {
+      display: flex; gap: 0.7rem; align-items: center;
+      padding: 0.5rem 0.7rem; border-bottom: 1px solid rgba(230,237,243,0.14);
+      background: #12161C; color: #EDF2F7;
+    }
+    .r-head .r-vp { color: #6B7683; margin-right: auto; }
+    .r-toggle {
+      font: inherit; background: transparent; color: #C4CCD5; cursor: pointer;
+      border: 1px solid rgba(230,237,243,0.2); border-radius: 5px; padding: 0.1rem 0.5rem;
+    }
+    .r-status { padding: 0.4rem 0.7rem; color: #E0A84C; border-bottom: 1px solid rgba(230,237,243,0.08); }
+    .r-body { overflow: auto; padding: 0.3rem 0 2rem; }
+    .r-verdict { padding: 0.6rem 0.7rem; font-size: 15px; font-weight: 700; letter-spacing: 0.04em; }
+    .r-verdict span { display: block; font-size: 11px; font-weight: 400; color: #6B7683; letter-spacing: 0; margin-top: 0.2rem; }
+    .r-pass { color: #7DD87F; } .r-fail { color: #F07850; }
+    .r-suite { border-top: 1px solid rgba(230,237,243,0.08); }
+    .r-suite > summary { padding: 0.35rem 0.7rem; cursor: pointer; color: #EDF2F7; }
+    .r-suite.has-fail > summary { color: #F07850; }
+    .r-n { display: inline-block; min-width: 3.6em; color: #6B7683; }
+    .r-row { padding: 0.15rem 0.7rem 0.15rem 4.5rem; }
+    .r-ok { color: #4a5561; }
+    .r-bad { color: #F07850; padding-top: 0.35rem; padding-bottom: 0.35rem; }
+    .r-name { color: #EDF2F7; }
+    .r-detail { color: #C4CCD5; white-space: pre-wrap; word-break: break-word; padding-left: 1rem; border-left: 2px solid rgba(240,120,80,0.5); margin: 0.2rem 0 0.2rem 0.2rem; }
+    /* The panel deliberately OVERLAYS the article rather than reserving space
+       for it. Reserving space would narrow the page, and the layout
+       invariants must measure the width the reader actually gets. Use the
+       hide button to read the page underneath. */
+  </style>
+</head>
+<body>
+  <!-- Same chrome the reader sees: sticky figures are positioned against it,
+       so the layout invariants need it present to measure the real thing. -->
+  <div class="chrome">
+    <div class="chrome-title">How a Trillion-Parameter Model Actually Works</div>
+    <div class="chrome-actions"><button type="button">dark</button></div>
+  </div>
+  <div class="progress-rail"><div class="bar"></div></div>
+
+  <main id="article" class="article"></main>
+
+  <script type="module">
+    import {
+      mountAll, mountReport, renderReport, setStatus, finish, resetResults,
+      domDigest, figures, RESULTS, LOG, MOUNTED,
+    } from './harness.js';
+    import { runUniversalInvariants, layoutInvariants } from './invariants.js';
+    import { runContentChecks } from './content.js';
+    import { runFigureChecks } from './figure-checks.js';
+
+    const q = new URLSearchParams(location.search);
+    const only = q.get('ch') ? new Set(q.get('ch').split(',')) : null;
+    const wantLayout = q.get('layout') !== '0';
+    const suitesWanted = (q.get('suite') || 'all').split(',');
+    const want = (s) => suitesWanted.includes('all') || suitesWanted.includes(s);
+
+    if (q.get('theme') === 'dark' || (!q.has('theme') && matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.body.classList.add('dark');
+    }
+    if (q.get('ui') !== '0') mountReport();
+
+    const t0 = performance.now();
+
+    async function run() {
+      setStatus('mounting every chapter and extension in the registries…');
+      await mountAll(only);
+      setStatus(`mounted ${MOUNTED.length} chapters · ${figures().length} scroll-driven figures`);
+
+      if (want('content')) { setStatus('content checks (5.3)…'); await runContentChecks(); renderReport(); }
+      if (want('figures')) { setStatus('per-figure assertions (5.2)…'); await runFigureChecks(); renderReport(); }
+      if (want('invariants')) {
+        setStatus('universal invariants (5.1)… this sweeps every figure 40 steps in each direction');
+        await runUniversalInvariants({ layout: false });
+        renderReport();
+      }
+      if (wantLayout && want('layout')) {
+        setStatus('layout invariants (5.1.8) — scrolling every scene…');
+        await layoutInvariants(figures());
+      }
+
+      const r = finish();
+      r.durationMs = Math.round(performance.now() - t0);
+      r.domDigest = domDigest();
+      renderReport();
+      setStatus(`${r.failed === 0 ? 'PASS' : 'FAIL'} — ${r.passed}/${r.total} in ${(r.durationMs / 1000).toFixed(1)}s`);
+      console.log('__TEST_RESULTS__', r);
+    }
+
+    /* Handles for an external driver (Playwright, Puppeteer, CDP). The page
+       cannot resize itself, so 5.1.8 at 375×667 / 393×852 / 950×870 /
+       1440×900 is: setViewportSize → reload → await __TEST_DONE__, or
+       setViewportSize → __TEST__.runLayout(). See test/README.md. */
+    window.__TEST__ = {
+      run,
+      figures,
+      results: RESULTS,
+      log: LOG,
+      domDigest,
+      async runLayout() {
+        resetResults();
+        await layoutInvariants(figures());
+        const r = finish();
+        renderReport();
+        setStatus(`layout @ ${innerWidth}×${innerHeight}: ${r.failed === 0 ? 'PASS' : 'FAIL'} — ${r.passed}/${r.total}`);
+        return r;
+      },
+    };
+
+    run().catch((err) => {
+      console.error(err);
+      setStatus('HARNESS CRASHED — ' + err.message);
+      window.__TEST_RESULTS__ = {
+        passed: RESULTS.passed, failed: RESULTS.failed + 1, total: RESULTS.total + 1,
+        failures: [...RESULTS.failures, { suite: 'harness', name: 'run()', detail: String(err && err.stack || err) }],
+      };
+      window.__TEST_DONE__ = true;
+    });
+  </script>
+</body>
+</html>
