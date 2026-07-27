@@ -147,3 +147,56 @@ export function permutationFigure() {
   update(0);
   return pin(node, update, { extent: 300 });
 }
+
+/* ---- per-figure checks (see test/figure-checks.js for the contract) --------
+
+   This figure asserts a property, not a picture: attention over a set is
+   permutation-EQUIVARIANT — permute the input and the output permutes
+   identically — until positional information is added, at which point it
+   stops being. That is the claim, so that is what the test verifies, by
+   re-running the same attend() the figure draws with.
+
+   It would be cheaper to assert that the footer reads "1.1e−16". It would
+   also be worthless: that string would survive attention() being replaced
+   with something that ignores its input entirely. Checking the property
+   means this fails if softmax(), matmul() or dot() break, and it keeps
+   passing if the example vectors change.                                    */
+
+export const checks = [
+  {
+    fig: '#fig-permute',
+    p: 0.5,
+    name: 'without positions, permuting the input permutes the output identically',
+    assert() {
+      const off = CASES.find((c) => c.key === 'off');
+      if (off.d > 1e-9) {
+        throw new Error(
+          `attention is supposed to be a set function here, but permuting the input moved the output by ${off.d.toExponential(2)} — it should be zero to floating-point noise`);
+      }
+    },
+  },
+  {
+    fig: '#fig-permute',
+    p: 0.5,
+    name: 'with positions, the same permutation genuinely changes the answer',
+    assert() {
+      const on = CASES.find((c) => c.key === 'on');
+      if (!(on.d > 1e-3)) {
+        throw new Error(
+          `positional embeddings are supposed to break the symmetry, but the permuted output is within ${on.d.toExponential(2)} of the permuted baseline — the figure's whole point does not hold`);
+      }
+    },
+  },
+  {
+    fig: '#fig-permute',
+    p: 1,
+    name: 'the numbers on screen are the ones the property test just computed',
+    assert(root) {
+      const shown = root.textContent.replace(/−/g, '-');
+      const want = CASES[1].d.toFixed(2);
+      if (!shown.includes(want)) {
+        throw new Error(`the figure should report ${want} as the with-positions gap; its text does not contain it`);
+      }
+    },
+  },
+];

@@ -128,3 +128,41 @@ export function driftFigure() {
     note.setAttribute('opacity', seg(p, 0.92, 0.98));
   }, { extent: 220 });
 }
+
+/* ---- per-figure checks (see test/figure-checks.js for the contract) --------
+
+   The figure's claim is that recall is verbatim up to a point and invention
+   after it, and that the point is found rather than chosen. DIV is walked
+   character by character above, so the test walks it independently and
+   compares — asserting the property (a genuine prefix, then a genuine
+   divergence) instead of the number 152, which would keep passing if the walk
+   were replaced by a hard-coded index.                                       */
+
+export const checks = [
+  {
+    fig: '#fig-drift',
+    p: 0.8,
+    name: 'the divergence point is a real longest-common-prefix, not a chosen index',
+    assert() {
+      let i = 0;
+      while (i < REF.length && i < REC.length && REF[i] === REC[i]) i++;
+      if (i !== DIV) throw new Error(`the figure marks divergence at ${DIV}, but the strings agree up to ${i}`);
+      if (REF.slice(0, DIV) !== REC.slice(0, DIV)) {
+        throw new Error('the text before the divergence is not actually identical in both strings');
+      }
+      if (DIV < REF.length && DIV < REC.length && REF[DIV] === REC[DIV]) {
+        throw new Error(`the strings still agree at ${DIV}, so that is not where they diverge`);
+      }
+    },
+  },
+  {
+    fig: '#fig-drift',
+    p: 0.8,
+    name: 'recall is mostly verbatim, and the invented tail is non-trivial',
+    assert() {
+      const share = DIV / REC.length;
+      if (share < 0.5) throw new Error(`only ${(share * 100).toFixed(0)}% is verbatim — the figure is about near-perfect recall giving way, not immediate failure`);
+      if (REC.length - DIV < 20) throw new Error('the invented tail is too short to make the point');
+    },
+  },
+];

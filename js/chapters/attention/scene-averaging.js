@@ -54,25 +54,35 @@ export function averagingScene() {
       { n: 'STEP 4 / 4 — LET THE DATA CHOOSE', html: `<p>The uniform weights are the last arbitrary thing left. Replace them: give every token a query and every token a key, score each pair with q&middot;k&nbsp;/&nbsp;&radic;d, set the future to &minus;&infin;, and softmax each row.</p><p>The row sums are still 1. The future is still invisible. The only thing that changed is that the weights are now a function of the content — and the running average became a lookup.</p>` },
     ],
     figure: averagingFigure,
+    /* A taller figure than most scenes here, which on a phone leaves the
+       opening card starting level with the artwork rather than below it.
+       The stacked layout scales this down (see css/components.css); its
+       effect here is to give step one enough room to clear the figure. */
+    stepVh: 104,
   });
 }
 
 function averagingFigure(canvas) {
   const gx = 140, gy = 112, cw = 52, ch = 38, gap = 5;
   const cellsW = [], cellsB = [], cellsC = [];
-  const mk = (bank, x, rows, cols, fill) => {
+  /* `data-cell` is for the checks at the bottom of this file: it lets the test
+     read the three matrices back off the screen and verify that what is drawn
+     really is w @ B, whatever step the reader is on. */
+  const mk = (bank, name, x, rows, cols, fill) => {
     for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
       const cx = x + j * (cw + gap), cy = gy + i * (ch + gap);
+      const label = txt(cx + cw / 2, cy + ch / 2 + 4.3, '', { size: 11.5, fill: PAL.ink, anchor: 'middle', mono: true });
+      label.setAttribute('data-cell', `${name}-${i}-${j}`);
       bank.push({
         i, j, cx, cy,
         rect: svg('rect', { x: cx, y: cy, width: cw, height: ch, rx: 4, fill, 'fill-opacity': 0, stroke: PAL.grid }),
-        label: txt(cx + cw / 2, cy + ch / 2 + 4.3, '', { size: 11.5, fill: PAL.ink, anchor: 'middle', mono: true }),
+        label,
       });
     }
   };
-  mk(cellsW, gx, 3, 3, PAL.attn);
-  mk(cellsB, 334, 3, 2, PAL.act);
-  mk(cellsC, 471, 3, 2, PAL.act);
+  mk(cellsW, 'w', gx, 3, 3, PAL.attn);
+  mk(cellsB, 'b', 334, 3, 2, PAL.act);
+  mk(cellsC, 'out', 471, 3, 2, PAL.act);
 
   const opTag = txt(24, 32, '', { size: 11, fill: PAL.attn });
   const opLine = txt(24, 54, '', { size: 12.5, fill: PAL.tx, mono: true });
@@ -174,3 +184,105 @@ function averagingFigure(canvas) {
   update(0, 0, 0);          // paint the p=0 state now, so nothing flashes on entry
   return update;
 }
+
+/* ---- per-figure checks (see test/figure-checks.js for the contract) --------
+
+   The claim this figure makes is that the arithmetic on screen is true — that
+   a reader can check any cell on paper and it will hold. So the assertion
+   reads all three matrices back out of the DOM and verifies out = w @ B using
+   matmul() from core/mathtools.js, the same function the figure draws with.
+
+   Deliberately NOT asserted against the step's expected matrix: transcribing
+   [[14,16],[14,16],[14,16]] here would keep passing after someone broke
+   matmul(). Reading w and B off the screen means the test fails exactly when
+   the drawing and the arithmetic disagree, which is the only failure that
+   matters — and it keeps passing if the example's numbers are ever changed,
+   which is correct, because the figure's job is to be true, not to display
+   one particular matrix forever.                                            */
+
+/* The weights are typeset for a reader: '0', '1', exact fractions like '1/3'
+   while they are uniform, three decimals once they are softmax outputs. */
+function readCell(text) {
+  const t = text.replace(/−/g, '-').trim();
+  if (t === '') return null;
+  const frac = /^(-?\d+)\/(\d+)$/.exec(t);
+  if (frac) return Number(frac[1]) / Number(frac[2]);
+  const v = Number(t);
+  if (!Number.isFinite(v)) throw new Error(`cannot read a number from ${JSON.stringify(text)}`);
+  return v;
+}
+
+function readMatrix(root, name, rows, cols) {
+  const M = [];
+  for (let i = 0; i < rows; i++) {
+    const row = [];
+    for (let j = 0; j < cols; j++) {
+      const el = root.querySelector(`[data-cell="${name}-${i}-${j}"]`);
+      if (!el) throw new Error(`no cell ${name}-${i}-${j} in the figure`);
+      const v = readCell(el.textContent);
+      if (v === null) throw new Error(`cell ${name}-${i}-${j} is blank`);
+      row.push(v);
+    }
+    M.push(row);
+  }
+  return M;
+}
+
+const atStep = (i) => (i + 0.5) / 4;    // mid-window of step i, of four
+
+export const checks = [0, 1, 2, 3].flatMap((step) => [
+  {
+    fig: '#attn-averaging',
+    p: atStep(step),
+    name: `step ${step + 1}: the output on screen equals w @ B computed from the w and B on screen`,
+    assert(root) {
+      const W = readMatrix(root, 'w', 3, 3);
+      const B = readMatrix(root, 'b', 3, 2);
+      const shown = readMatrix(root, 'out', 3, 2);
+      const want = matmul(W, B);
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 2; j++) {
+          /* Tolerance covers the printed precision of w — a weight shown as
+             0.123 carries the rounding into the product. */
+          if (Math.abs(shown[i][j] - want[i][j]) > 0.02) {
+            throw new Error(`out[${i}][${j}] displays ${shown[i][j]} but w @ B gives ${want[i][j].toFixed(3)}`);
+          }
+        }
+      }
+    },
+  },
+  {
+    fig: '#attn-averaging',
+    p: atStep(step),
+    name: `step ${step + 1}: the weight matrix never lets a token see its future`,
+    assert(root) {
+      const W = readMatrix(root, 'w', 3, 3);
+      /* Step 1 is the deliberate exception — the all-ones matrix is shown
+         precisely so that the reader sees what a missing mask looks like. */
+      if (step === 0) {
+        if (W.some((row) => row.some((v) => v !== 1))) throw new Error('step 1 should be all ones');
+        return;
+      }
+      for (let i = 0; i < 3; i++) {
+        for (let j = i + 1; j < 3; j++) {
+          if (W[i][j] !== 0) throw new Error(`w[${i}][${j}] is ${W[i][j]}; token ${i} must not see token ${j}`);
+        }
+      }
+    },
+  },
+  {
+    fig: '#attn-averaging',
+    p: atStep(step),
+    name: `step ${step + 1}: rows sum to 1 once the weights are normalized`,
+    assert(root) {
+      if (step < 2) return;            // sums are 3 and then 1,2,3 by design
+      const W = readMatrix(root, 'w', 3, 3);
+      W.forEach((row, i) => {
+        const sum = row.reduce((a, b) => a + b, 0);
+        if (Math.abs(sum - 1) > 0.01) {
+          throw new Error(`row ${i} of w sums to ${sum.toFixed(3)}, not 1 — it is no longer an average`);
+        }
+      });
+    },
+  },
+]);

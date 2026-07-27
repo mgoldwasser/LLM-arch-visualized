@@ -2,9 +2,10 @@
    Spine only — the one-layer scene lives in scene-layer.js, the y = xW atom
    in fig-atom.js, and the to-scale weight map in fig-scale.js. */
 
-import { chapter, chapterHead, prose, term, mathAside, claimFig, chRef } from '../../core/components.js';
+import { chapter, chapterHead, prose, term, mathAside, claimFig, chRef, figRef } from '../../core/components.js';
 import { K3 } from '../../../data/k3.js';
 import { sceneLayer } from './scene-layer.js';
+import { figRhythm } from './fig-rhythm.js';
 import { figAtom } from './fig-atom.js';
 import { figScale } from './fig-scale.js';
 
@@ -23,13 +24,22 @@ export function render({ id, num, title }) {
   const scene = sceneLayer();
 
   const afterScene = prose(
-    `<em>Fig. ${layerFig} — one transformer layer. Each token’s residual stream runs bottom to top; attention mixes across streams, the MLP works on each stream alone, and both add their deltas back. Zoom out and the same block repeats ~${L} times.</em>`,
+    `<em>Fig. ${layerFig} — one transformer layer. Each token’s residual stream runs bottom to top; attention mixes across streams, the MLP works on each stream alone, and both add their deltas back. Zoom out and the same block repeats ~${L} times.</em>`);
+
+  const rhythm = prose(
+    `<strong>Communication, then computation.</strong> The two sublayers you just watched are not an arbitrary pair; they are two different <em>kinds</em> of work, and naming them gives the shortest honest summary of a transformer block. <strong>Attention is communication</strong>: the tokens look at each other, and each one gathers what it needs from the rest — how it decides what to gather is ${chRef('attention')}’s whole subject. <strong>The feed-forward is computation</strong>: each token, on its own, thinks about what it just gathered. Communicate, compute, communicate, compute — ~${L} times over.`,
+    `The half that is easy to miss is how literal “on its own” is. The feed-forward network is handed one token’s vector — d numbers — and returns d numbers. It has no argument for the other positions and no path by which to reach them; run it on one token and it gives the same answer no matter how long the sequence is, or whether there is a sequence at all. Every position therefore passes through the same weights independently, which is why this sublayer parallelizes perfectly — T tokens is one batched matrix multiply, not a loop along the sequence — and why nearly all the parameters live in it (${figRef('residual', 'scale')}). Attention decides <em>where</em> information moves, and that is cheap to store; the feed-forward decides <em>what to make of</em> what arrived, and that is not.`);
+
+  const weightsIntro = prose(
     `<strong>What a weight actually does.</strong> Before stacking anything higher, take the vector–matrix product from ${chRef('vectors')} and give its two halves their transformer names — this is the same atom, seen from inside the machine. The model has exactly two kinds of numbers. <strong>Weights</strong> are the ${(K3.totalParams / 1e12).toFixed(1)} trillion learned constants, frozen at inference, organized almost entirely into matrices. <strong>Activations</strong> are the transient values computed per input — the residual stream vectors flowing through those matrices. Every sublayer you’ve met reduces to the same primitive: a vector–matrix product y = xW, plus a cheap elementwise nonlinearity. And each output dimension of that product is just one dot product — the token’s vector against one learned column.`);
 
   return chapter(id,
     head,
     scene,
     afterScene,
+    rhythm,
+    figRhythm(),
+    weightsIntro,
     figAtom(),
     prose(
       `Two readings of the same operation are worth holding simultaneously. <em>Per output:</em> each column of W is a learned feature detector, and y_j measures how strongly the token expresses feature j. <em>Per input:</em> y is a weighted combination of W’s rows — the matrix re-mixes the token’s coordinates into a new basis. A d×k matrix is nothing more than a learned linear map ℝ<sup>d</sup> → ℝ<sup>k</sup>; the entire transformer is a long composition of such maps, with just enough nonlinearity (softmax, gated activations) in between to keep the composition from collapsing into one matrix.`,

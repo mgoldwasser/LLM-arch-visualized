@@ -86,6 +86,8 @@ export function render({ id, num, title }) {
       `Strip the matrices away and attention is a communication rule on a directed graph. Each token is a node; an edge from node <em>i</em> to node <em>j</em> means &ldquo;i is allowed to read j&rdquo;. The mask is the adjacency rule, the softmax decides how loudly each permitted edge speaks, and nothing else in the mechanism knows anything about sequences at all.`,
       `Seeing it that way collapses a family of architectures into one picture. Keep the rule <em>j&nbsp;&le;&nbsp;i</em> and you have the decoder every language model uses. Delete the masking line and every node talks to every other — that is an <strong>encoder</strong> block, of the kind BERT-style models and the vision towers in ${chRef('multimodal')} are built from. Point the queries at a <em>different</em> set of nodes and it is <strong>cross attention</strong>, which is how a decoder reads an encoder, an image, or a retrieved document. Three architectures, one adjacency rule.`),
     graphFigure(),
+    prose(
+      `One more thing the graph makes visible by leaving it out. Training runs many sequences at once — the batch — and a batch of 32 is not one graph of 32&times;T nodes. It is <strong>32 separate graphs that never touch</strong>: every matrix multiply here is batched, applied independently to each sequence, and no token in one document can read a token in another. That is why the batch can be reordered, resized, or split across ${chRef('pretraining')}'s eight GPUs without changing a single output, and why a served request is unaffected by whoever else is being served alongside it. Attention is total within a sequence and blind across the batch.`),
 
     subhead('Where does word order come from?'),
     prose(
