@@ -54,6 +54,11 @@ export function averagingScene() {
       { n: 'STEP 4 / 4 — LET THE DATA CHOOSE', html: `<p>The uniform weights are the last arbitrary thing left. Replace them: give every token a query and every token a key, score each pair with q&middot;k&nbsp;/&nbsp;&radic;d, set the future to &minus;&infin;, and softmax each row.</p><p>The row sums are still 1. The future is still invisible. The only thing that changed is that the weights are now a function of the content — and the running average became a lookup.</p>` },
     ],
     figure: averagingFigure,
+    /* A taller figure than most scenes here, which on a phone leaves the
+       opening card starting level with the artwork rather than below it.
+       The stacked layout scales this down (see css/components.css); its
+       effect here is to give step one enough room to clear the figure. */
+    stepVh: 104,
   });
 }
 

@@ -48,6 +48,17 @@ import graph, and the figure list from every `pin()` / `createScene()` /
 `track()` call the mounted chapters make. **A new figure is covered the moment
 it is registered — there is nothing to add here.**
 
+> **`?ch=` is for iterating, not for judging layout.** Mounting a subset
+> changes the height of the document, which changes where every scene sits and
+> therefore what the 5.1.8 layout suite measures. A `?ch=` run will also report
+> per-figure checks and takeaway-convention checks for chapters it did not
+> mount, as "the figure did not render" — that noise is expected.
+>
+> This has already produced one false alarm in both directions: a layout
+> failure that reproduced under `?ch=residual,anatomy` and did **not** exist in
+> a full run. Before believing any 5.1.8 result — pass or fail — re-run without
+> `?ch=`. Only the full-book run is authoritative for layout.
+
 ---
 
 ## Run it headlessly
