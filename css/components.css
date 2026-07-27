@@ -106,7 +106,9 @@
   background: var(--code-bg);
   border-radius: 0 8px 8px 0;
   padding: 0.7rem 1rem;
-  margin: 1.6rem 0;
+  /* horizontal margin MUST stay `auto`: this rule loads after base.css, so a
+     `margin: x 0` shorthand here would silently un-center `.measure`. */
+  margin: 1.6rem auto;
   font-size: 0.9em;
   color: var(--sec);
 }
@@ -118,7 +120,7 @@
 .math-aside {
   border: 1px solid var(--hr-soft);
   border-radius: 10px;
-  margin: 1.8rem 0;
+  margin: 1.8rem auto;
   overflow: hidden;
 }
 .math-aside summary {
@@ -328,11 +330,33 @@ body.dark .widget .w-badge { color: #0E1116; }
   .scene-cols { display: grid; grid-template-columns: 24rem 1fr; gap: 2.5rem; align-items: start; }
   .scene-cols .scene-sticky { top: max(4rem, calc(50vh - 16rem)); }
 }
-/* single-column (mobile): figure pins to top, cards scroll over */
+/* single-column (mobile): figure pins to top, cards travel up BEHIND it and
+   are faded out by scene.js before they reach the artwork. */
 @media (max-width: 63.99rem) {
-  .scene-sticky { top: 0.8rem; }
-  .scene-steps { margin-top: 1rem; }
-  .scene-step { min-height: 78vh; align-items: flex-end; padding-bottom: 8vh; }
+  .scene-sticky {
+    top: 3.2rem;              /* clear the fixed chrome */
+    z-index: 3;               /* above the cards — they pass underneath */
+  }
+  .scene-sticky .fig-canvas { background: var(--fig-bg); }
+  .scene-steps { margin-top: 1rem; z-index: 1; }
+  /* Card spacing IS the step height, and the figure eats the top ~1/3 of the
+     screen — so a tall step leaves a long dead stretch after one card fades
+     out and before the next rises into view. Sized so the next card is
+     already on screen as the current one goes behind the artwork. */
+  .scene-step { min-height: 44vh; align-items: flex-end; padding-bottom: 3vh; }
+  .scene-step:first-child { min-height: 32vh; }
+  .scene-step:last-child { min-height: 42vh; }
+  /* opacity is driven per-frame from geometry; don't fight it with the
+     active/inactive rule or transition it. Tighter type as well: a card has
+     to fit between the figure's lower edge and the bottom of the screen, or
+     its first line starts fading before its last line has arrived. */
+  .scene-step .step-card {
+    opacity: 1;
+    transition: border-color var(--t-med) ease;
+    padding: 0.9rem 1.05rem;
+  }
+  .step-card .step-body { font-size: 0.87rem; line-height: 1.5; }
+  .step-card .step-body p { margin: 0 0 0.55rem; }
 }
 
 /* ---- pinned figure (scroll-scrubbed in place, no step cards) -------------- */
@@ -362,7 +386,7 @@ body.dark .widget .w-badge { color: #0E1116; }
   border: 1px solid var(--hr-soft);
   border-radius: 12px;
   overflow: hidden;
-  margin: 2rem 0;
+  margin: 2rem auto;
   font-family: var(--sans);
 }
 .spec .spec-head {
@@ -390,7 +414,7 @@ body.dark .widget .w-badge { color: #0E1116; }
   border-top: 2px solid var(--acc);
   border-bottom: 1px solid var(--hr-soft);
   padding: 1.3rem 0;
-  margin: 2.4rem 0;
+  margin: 2.4rem auto;
   font-size: 1.08em;
   color: var(--ink);
   line-height: 1.5;

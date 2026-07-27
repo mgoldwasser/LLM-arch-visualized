@@ -41,6 +41,27 @@ export function createScene({ id, steps, figure, cols = true, stepVh }) {
   const update = figure(canvas) || (() => {});
   const n = steps.length;
 
+  const cards = stepEls.map((s) => s.querySelector('.step-card'));
+  const mq = window.matchMedia('(max-width: 63.99rem)');
+
+  /* Stacked (mobile) layout: the figure is pinned at the top and the cards
+     travel up underneath it. Fade each card out as it approaches the figure's
+     lower edge, so it is gone before it reaches the artwork rather than
+     sliding across it. Purely a function of geometry, so it rewinds on
+     reverse scroll like everything else. */
+  const FADE = 150;                     // px over which a card fades out
+  function fadeCards() {
+    if (!mq.matches) {
+      for (const c of cards) c.style.opacity = '';
+      return;
+    }
+    const edge = sticky.getBoundingClientRect().bottom;
+    for (const c of cards) {
+      const gap = c.getBoundingClientRect().top - edge;
+      c.style.opacity = clamp(gap / FADE).toFixed(3);
+    }
+  }
+
   trackScene(track, (p) => {
     // Active step: which card is nearest mid-viewport. Deriving from p keeps
     // figure state and card highlight perfectly in sync.
@@ -49,14 +70,16 @@ export function createScene({ id, steps, figure, cols = true, stepVh }) {
     const stepP = scaled - idx;
     stepEls.forEach((s, i) => s.classList.toggle('active', i === idx));
     update(p, idx, stepP);
+    fadeCards();
   });
 
   // In stacked (mobile) layout the DOM order must put the sticky figure first.
-  const mq = window.matchMedia('(max-width: 63.99rem)');
   const order = () => {
-    if (!cols) return;
-    if (mq.matches) track.prepend(sticky);
-    else track.append(sticky);
+    if (cols) {
+      if (mq.matches) track.prepend(sticky);
+      else track.append(sticky);
+    }
+    fadeCards();          // crossing the breakpoint changes which rule applies
   };
   mq.addEventListener?.('change', order);
   order();
