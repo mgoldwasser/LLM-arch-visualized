@@ -78,7 +78,7 @@ export function figure(a, b, c, d) {
   },
     bare ? content : el('div', { class: 'fig-canvas' }, content),
     el('figcaption', {},
-      el('span', { class: 'fig-n' }, `Fig. ${figNum} — `),
+      figNum ? el('span', { class: 'fig-n' }, `Fig. ${figNum} — `) : null,
       el('span', { html: captionHtml }))));
 }
 
@@ -121,12 +121,18 @@ export function specTable(title, sub, rows) {
      )
 */
 
+/* "09 · Where this breaks" — but front/back matter has no chapter number, and
+   a bare "· Where this breaks" reads as a typo. Drop the separator instead. */
+function sectionTitle(num, text) {
+  return num ? `${num} · ${text}` : text;
+}
+
 /* Wrapper band. num is the chapter number, used in the header. */
 export function frontier(num, ...children) {
   return el('div', { class: 'frontier wide' },
     reveal(el('header', { class: 'fr-head measure' },
       el('span', { class: 'fr-badge' }, 'frontier'),
-      el('span', { class: 'fr-title' }, `${num} · Where this breaks — and what comes next`),
+      el('span', { class: 'fr-title' }, sectionTitle(num, 'Where this breaks — and what comes next')),
       el('span', { class: 'fr-sub' }, 'bottleneck · current research · speculative directions'))),
     ...children);
 }
@@ -144,7 +150,7 @@ export function researchItem(name, year, status, html) {
     el('div', { class: 'fr-card-k' },
       el('span', { class: 'fr-name' }, name),
       el('span', { class: 'fr-year' }, year),
-      el('span', { class: `fr-status fr-${status}` }, status)),
+      el('span', { class: `fr-status fr-st-${status}` }, status)),
     el('div', { class: 'fr-card-b', html })));
 }
 
@@ -153,7 +159,56 @@ export function novelIdea(title, html) {
   return reveal(el('div', { class: 'fr-card fr-novel measure' },
     el('div', { class: 'fr-card-k' },
       el('span', { class: 'fr-name' }, title),
-      el('span', { class: 'fr-status fr-speculative' }, 'speculative · our proposal')),
+      el('span', { class: 'fr-status fr-st-speculative' }, 'speculative · our proposal')),
+    el('div', { class: 'fr-card-b', html })));
+}
+
+/* ---- consequence section family -------------------------------------------
+   The other standing end-of-chapter section, also mounted via js/extensions/.
+   Where frontier() asks "where is the FIELD stuck", consequence() asks "given
+   this mechanism, what will bite the READER" — the failure the chapter's own
+   machinery predicts. Chapters that have both carry consequence first: the
+   reader-facing cost, then the research frontier.
+
+     consequence(num,
+       failureMode('It cannot spell', '<p>…the symptom, concretely…</p>'),
+       because('<p>…the mechanism from THIS chapter that causes it…</p>'),
+       workaround('<p>…what to do instead, and why that works…</p>'),
+     )
+
+   Rule: a consequence section may only invoke mechanisms the chapter has
+   already taught. If explaining the failure needs machinery from elsewhere,
+   it belongs in that other chapter instead.                                  */
+
+export function consequence(num, ...children) {
+  return el('div', { class: 'consequence wide' },
+    reveal(el('header', { class: 'cq-head measure' },
+      el('span', { class: 'cq-badge' }, 'in practice'),
+      el('span', { class: 'cq-title' }, sectionTitle(num, 'What this costs you')),
+      el('span', { class: 'cq-sub' }, 'the failure this mechanism predicts'))),
+    ...children);
+}
+
+/* The symptom, stated as the reader would encounter it. */
+export function failureMode(name, html) {
+  return reveal(el('div', { class: 'fr-card cq-card cq-symptom measure' },
+    el('div', { class: 'fr-card-k' },
+      el('span', { class: 'fr-name' }, name),
+      el('span', { class: 'cq-tag' }, 'symptom')),
+    el('div', { class: 'fr-card-b', html })));
+}
+
+/* The mechanical cause — must come from this chapter. */
+export function because(html) {
+  return reveal(el('div', { class: 'fr-card cq-card measure' },
+    el('div', { class: 'fr-card-k' }, el('span', { class: 'fr-name' }, 'Why')),
+    el('div', { class: 'fr-card-b', html })));
+}
+
+/* What to do instead, and why that works. */
+export function workaround(html) {
+  return reveal(el('div', { class: 'fr-card cq-card cq-fix measure' },
+    el('div', { class: 'fr-card-k' }, el('span', { class: 'fr-name' }, 'What to do instead')),
     el('div', { class: 'fr-card-b', html })));
 }
 

@@ -18,6 +18,7 @@
 
 export const EXTENSIONS = [
   { target: 'objective',       load: () => import('./frontier-objective.js') },
+  { target: 'tokens',          load: () => import('./consequence-tokens.js') },
   { target: 'tokens',          load: () => import('./frontier-tokens.js') },
   { target: 'residual',        load: () => import('./frontier-residual.js') },
   { target: 'anatomy',         load: () => import('./frontier-anatomy.js') },
@@ -25,9 +26,15 @@ export const EXTENSIONS = [
   { target: 'attention-scale', load: () => import('./frontier-attention-scale.js') },
   { target: 'moe',             load: () => import('./frontier-moe.js') },
   { target: 'assembly',        load: () => import('./frontier-assembly.js') },
+  { target: 'data',            load: () => import('./frontier-data.js') },
   { target: 'pretraining',     load: () => import('./frontier-pretraining.js') },
+  { target: 'base-model',      load: () => import('./frontier-base-model.js') },
+  { target: 'posttraining',    load: () => import('./consequence-posttraining.js') },
   { target: 'posttraining',    load: () => import('./frontier-posttraining.js') },
+  { target: 'rl',              load: () => import('./frontier-rl.js') },
+  { target: 'inference',       load: () => import('./consequence-inference.js') },
   { target: 'inference',       load: () => import('./frontier-inference.js') },
   { target: 'adaptation',      load: () => import('./frontier-adaptation.js') },
   { target: 'multimodal',      load: () => import('./frontier-multimodal.js') },
+  { target: 'epilogue',        load: () => import('./consequence-epilogue.js') },
 ];

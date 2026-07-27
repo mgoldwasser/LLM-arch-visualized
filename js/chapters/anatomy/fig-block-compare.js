@@ -78,6 +78,9 @@ export function blockCompareFigure() {
     const on = current >= 0 ? 1 : 0;
     reasonBg.setAttribute('opacity', on * 0.9);
     reason.setAttribute('opacity', on);
-    if (current >= 0) reason.textContent = DIFFS[current];
+    /* Assign unconditionally. Setting this only when a row is lit left the
+       previous frame's text in place at p=0, so the same p rendered different
+       DOM depending on how the reader got there. */
+    reason.textContent = current >= 0 ? DIFFS[current] : '';
   });
 }

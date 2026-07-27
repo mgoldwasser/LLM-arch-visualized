@@ -124,9 +124,45 @@ badged *speculative · our proposal*, and should name its own failure modes and
 the cheapest experiment that would falsify it. Figures and scenes are welcome
 here too.
 
-**Part I (the foundations) is exempt.** Those chapters teach settled
-mathematics — vectors, networks, optimization, probability, sequence models —
-and close on a `takeaway()` instead.
+**Chapters that teach settled mathematics are exempt** and close on a
+`takeaway()` instead: vectors, networks, learning, probability, sequences.
+There is no live research frontier in the dot product.
+
+The rule is about the subject, not the Part. The objective chapter sits in
+Part I but carries a frontier, because *what to train on* is an open question
+even though the mathematics around it is not — the one-token-of-supervision
+bottleneck is a real and current constraint. If a Part I chapter ever acquires
+a genuine frontier, give it one.
+
+### The consequence section (standing convention)
+
+The other end-of-chapter band, also mounted via `js/extensions/`. Where
+`frontier` asks *where is the field stuck*, `consequence` asks *given this
+mechanism, what will bite the reader* — the failure the chapter's own machinery
+predicts:
+
+```js
+consequence(num,
+  failureMode('It cannot spell', '<p>…the symptom as the reader meets it…</p>'),
+  because('<p>…the mechanism from THIS chapter that causes it…</p>'),
+  workaround('<p>…what to do instead, and why that works…</p>'),
+)
+```
+
+**The binding rule: a consequence section may only invoke mechanisms its own
+chapter has already taught.** If explaining a failure needs machinery from
+elsewhere, it belongs in that other chapter instead. This is what keeps these
+sections from degenerating into a list of quirks — each one should land as
+"the architecture I just learned *predicts* this".
+
+Not every chapter has one; they exist where a mechanism has a sharp,
+reader-visible cost. A chapter carrying both puts `consequence` first (the
+reader-facing cost), then `frontier` (the research frontier) — order is set by
+position in `js/extensions/registry.js`.
+
+Date your claims. Where a section shows a specific model failing a specific
+way, name the model and roughly when. These get patched, and an undated claim
+ages badly.
 
 ## Building blocks (`js/core/components.js`)
 
@@ -140,6 +176,8 @@ and close on a `takeaway()` instead.
 | `figure(captionHtml, node, {wide, key})` | dark-canvas figure + auto-numbered caption |
 | `widget(title, hint, bodyNode)` | interactive widget frame with badge |
 | `takeaway(html)` | emphasized summary band |
+| `consequence(num, ...)` | end-of-chapter "what this costs you" band (see below) |
+| `failureMode / because / workaround` | the three cards inside a consequence band |
 | `specTable(title, sub, rows)` | key/value spec sheet |
 | `txt(x, y, s, opts)` | SVG text with the figure palette's defaults |
 | `PAL` | the SVG color palette (see below) |

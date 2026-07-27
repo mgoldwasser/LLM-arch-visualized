@@ -43,7 +43,7 @@ export function pipelineFigure() {
 
   const arrows = boxes.slice(0, 3).map((b, i) => svg('path', {
     d: `M ${b.x + b.w + 4} ${BY + BH / 2} L ${boxes[i + 1].x - 6} ${BY + BH / 2}`,
-    stroke: PAL.mut, 'stroke-width': 1.6, fill: 'none', 'marker-end': 'url(#pt-arr)', opacity: 0,
+    stroke: PAL.mut, 'stroke-width': 1.6, fill: 'none', 'marker-end': 'url(#post-arr)', opacity: 0,
   }));
 
   /* compute bar: pretraining dwarfs everything to its right */
@@ -59,7 +59,7 @@ export function pipelineFigure() {
     { size: 12, fill: PAL.tx, opacity: 0 });
 
   const defs = svg('defs', {},
-    svg('marker', { id: 'pt-arr', viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' },
+    svg('marker', { id: 'post-arr', viewBox: '0 0 10 10', refX: 8, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' },
       svg('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: PAL.mut })));
 
   const root = svgRoot(W, H, {

@@ -45,7 +45,11 @@ export function wallFigure() {
     return { g };
   });
 
-  const foot = txt(24, 284, `the ${fmtBig(scoresOne)} score matrix is per head per layer — ${(T1M / 1e6) * (T1M / 1e6)}×10¹² scores each. Nothing right of the green band fits; everything right of it must be tiled, compressed, or deleted.`, { size: 10.5, fill: PAL.tx });
+  /* Two lines, not one: at 10.5px a single ~160-character run overruns the
+     760-unit canvas by about 30px and is clipped on the right. */
+  const foot = svg('g', {},
+    txt(24, 272, `the ${fmtBig(scoresOne)} score matrix is per head per layer — ${(T1M / 1e6) * (T1M / 1e6)}×10¹² scores each.`, { size: 10.5, fill: PAL.tx }),
+    txt(24, 288, 'Nothing right of the green band fits; everything right of it must be tiled, compressed, or deleted.', { size: 10.5, fill: PAL.tx }));
 
   const root = svgRoot(W, H, {
     role: 'img',

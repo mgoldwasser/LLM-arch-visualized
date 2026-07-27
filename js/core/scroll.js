@@ -107,6 +107,13 @@ export function onScrollY(cb) {
 export function pin(node, cb, { extent = 190 } = {}) {
   const stick = el('div', { class: 'pin-stick' }, node);
   const wrap = el('div', { class: 'pin-track', style: { height: `${extent}vh` } }, stick);
+  // Paint the p=0 frame at build time. Figures are conventionally built as an
+  // empty shell and filled from p, so without this the DOM as constructed is
+  // nobody's frame — it differs from the p=0 the reader gets on the first
+  // rAF. Usually that lands before first paint, but not always, and it makes
+  // "the p=0 snapshot equals the initial render" untestable. Safe because the
+  // callback must already be idempotent in p.
+  cb(0);
   trackScene(wrap, cb);
   return wrap;
 }

@@ -63,8 +63,11 @@ below are deliberately omitted — see `js/registry.js` for the running order.
 
 | Chapter | Mechanism | Signature visual |
 |---|---|---|
+| Where the knowledge comes from | Corpus construction | The filter cascade from raw crawl to 15T tokens |
 | Pretraining | The training loop and its economics | The 6·N·D bars; four axes of parallelism |
+| The base model | What falls out of pretraining | One prompt, three sampled worlds; recite-then-drift |
 | Post-training | SFT → RLHF → RLVR | GRPO scoring a group of 16 attempts |
+| Practice problems | RL and the emergence of thinking | AlphaGo's two curves; rollouts that discover backtracking |
 
 **Part IV — using one**
 
@@ -78,6 +81,14 @@ Every chapter in Parts II–IV ends with a **Frontier** section — what makes t
 component inefficient or knowledge-scarce, the cutting-edge research attacking
 it (with deployed / research / contested status), and a clearly-badged
 speculative proposal. Part I is exempt: it teaches settled mathematics.
+
+Where a mechanism has a sharp, reader-visible cost, the chapter also carries an
+**In practice** section: the failure its own machinery predicts, stated as
+symptom → cause → what to do instead. Tokenization is why it cannot spell;
+fixed compute per token is why it cannot count and why chain-of-thought works;
+the shape of the fine-tuning data is why it hallucinates confidently. Each one
+lands in the chapter that explains it, so the failure reads as a prediction of
+the architecture rather than a quirk.
 
 ## Architecture
 
@@ -108,6 +119,11 @@ data/
   k3.js               the Kimi K3 spec sheet; single source of truth
 docs/
   AUTHORING.md        how to add or edit a chapter (start here to extend)
+  KARPATHY-PLAN.md    coverage analysis + the animation/testing plan
+test/
+  index.html          open /test/ — runs every scene against the invariants
+                      (idempotent under scrub, exactly reversible, no NaN,
+                      deterministic across loads, cards never cover the figure)
 ```
 
 **Extending:** create `js/chapters/<slug>/index.js` exporting `render()`, add

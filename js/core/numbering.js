@@ -75,10 +75,18 @@ export function beginChapter(id) {
 }
 
 /* Reserve the next figure number in the current chapter. `key` makes it
-   referenceable from prose via figRef(). */
+   referenceable from prose via figRef().
+
+   Front and back matter (registry `kind`) carry no chapter number, so their
+   figures get no number either — returning '' rather than a malformed '.1'.
+   figure() drops the whole "Fig. N — " prefix in that case, which is what the
+   epilogue wants anyway: it has a handful of figures and no numbered chapter
+   for them to hang off. */
 export function claimFig(key) {
   count += 1;
-  const n = `${chNumShort(currentId)}.${count}`;
+  const ch = chNumShort(currentId);
+  if (!ch) return '';
+  const n = `${ch}.${count}`;
   if (key) figNums.set(`${currentId}:${key}`, n);
   return n;
 }

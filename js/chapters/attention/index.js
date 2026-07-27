@@ -11,9 +11,15 @@ import { createScene } from '../../core/scene.js';
 import { K3 } from '../../../data/k3.js';
 import { BP, subhead, eqLine, claimed } from './shared.js';
 import { attentionScene } from './scene-five-stages.js';
+import { averagingScene } from './scene-averaging.js';
+import { ladderScene } from './scene-ladder.js';
 import { shapesFigure } from './fig-shapes.js';
 import { workedExample } from './fig-worked-example.js';
+import { removalFigure } from './fig-removal.js';
+import { scalingFigure } from './fig-scaling.js';
 import { coreferenceWidget } from './widget-coreference.js';
+import { graphFigure } from './fig-graph.js';
+import { permutationFigure } from './fig-permutation.js';
 import { ropeFigure } from './fig-rope.js';
 import { variantsFigure } from './fig-variants.js';
 
@@ -39,6 +45,15 @@ export function render({ id, num, title }) {
     })),
     prose(`<em>${figRef(id, 'five-stages')} — one attention head in five stages: project into q/k/v, score every pair, mask and normalize, gather a weighted blend, then ×${BP.heads} heads in parallel.</em>`),
 
+    subhead('Where the weighted average comes from'),
+    prose(
+      `Presented finished, attention looks like a design — five stages that someone had to think of. It is easier to trust, and much harder to forget, as a <em>derivation</em>: begin with the dullest possible way of letting a token see its own past, then delete the arbitrary parts one at a time until nothing arbitrary is left. What remains is attention, and there is nowhere along the way where a choice was smuggled in.`,
+      `The whole construction fits in a 3&times;3 matrix. Every number in the next two figures is computed in the browser by the same <code>matmul</code> and <code>softmax</code> that produce ${figRef(id, 'worked')}; nothing is transcribed. They are meant to be checked.`),
+    claimed('averaging', averagingScene()),
+    prose(`<em>${figRef(id, 'averaging')} — the averaging trick. A 3&times;3 weight matrix multiplied into three value vectors, one product at a time. Ones give column totals; a lower triangle gives running sums, because the zeroed terms drop out of the sum; dividing each row by its own total gives running averages; and softmaxed q&middot;k affinities give attention. The mask is not an <code>if</code> — it is a zero.</em>`),
+    claimed('ladder', ladderScene()),
+    prose(`<em>${figRef(id, 'ladder')} — the same average written three ways. The badges show the largest elementwise difference between neighboring outputs, computed each time the figure redraws: the first two read <em>identical</em> because that comparison came back at the level of floating-point rounding, not because the word was typed there. The last step changes only where the affinities come from, and the badge breaks on its own.</em>`),
+
     subhead('The shapes, end to end'),
     prose(
       `The five stages compress into one line of shape bookkeeping — worth internalizing, because every attention variant in ${figRef(id, 'variants')} is just an edit to these dimensions. With K2&rsquo;s numbers (d&nbsp;=&nbsp;${BP.dModel}, d_head&nbsp;=&nbsp;${BP.dHead}, ${BP.heads} heads) and a T-token context, per head:`),
@@ -49,14 +64,35 @@ export function render({ id, num, title }) {
       `Shapes tell you what&rsquo;s legal; numbers tell you what&rsquo;s happening. Here is the entire mechanism for four tokens at d_head&nbsp;=&nbsp;2 — small enough to check by hand, and structurally identical to the real thing at ${BP.dHead}. Follow the highlighted row: token 3 (&ldquo;sat&rdquo;) building its output.`),
     workedExample(),
 
+    subhead('What each part is for'),
+    prose(
+      `A mechanism is easiest to read at the moment it breaks. Everything so far has been additive — one more stage, one more term. The next figure runs the other way: it starts from the finished attention matrix and <em>removes</em> machinery, so you can see what each piece was holding up.`,
+      `Take the softmax away first. What is left underneath are the raw affinities q&middot;k&nbsp;/&nbsp;&radic;d_head, which run negative as well as positive and do not total anything in particular per row. They cannot be mixing weights; the softmax is what converts a set of scores into an average. Then take the causal mask away, and the upper triangle fills in: every one of those cells is a token reading a token that has not been written yet.`),
+    removalFigure(),
+
+    subhead('Why the scores are divided by √d_head'),
+    prose(
+      `Step 2 divided the scores by &radic;d_head and moved on. It is worth stopping, because the reason is not a tuning detail — it is the difference between a head that can learn and one that cannot.`,
+      `A dot product of two vectors of d independent, unit-variance coordinates is a sum of d independent terms, so its variance is d. Softmax has no notion of scale; it only cares how far apart the scores are. Push the same relative pattern up by a factor of &radic;d and the row sharpens toward one-hot — an artifact of the dimension, not of the data. At initialization, that means every token would attend almost entirely to a single other token, in a region where the softmax gradient is nearly zero and nothing can move. Dividing by &radic;d_head cancels the growth exactly.`),
+    scalingFigure(),
+
     prose(
       `Here is the mechanism doing its signature trick — pronoun resolution. In &ldquo;the trophy didn&rsquo;t fit in the suitcase because <strong>it</strong> was too big&rdquo;, grammar alone cannot tell you what &ldquo;it&rdquo; refers to; world knowledge can. Click any token to see a coreference-style head&rsquo;s weights from that token.`),
     claimed('coref', coreferenceWidget()),
     prose(`<em>${figRef(id, 'coref')} — try &ldquo;it&rdquo; (trophy vs. suitcase), then &ldquo;big&rdquo;, then &ldquo;fit&rdquo;. Values are hand-set to illustrate one coreference-style head; real models spread this across many heads and layers.</em>`),
 
+    subhead('Attention as communication on a graph'),
+    prose(
+      `Strip the matrices away and attention is a communication rule on a directed graph. Each token is a node; an edge from node <em>i</em> to node <em>j</em> means &ldquo;i is allowed to read j&rdquo;. The mask is the adjacency rule, the softmax decides how loudly each permitted edge speaks, and nothing else in the mechanism knows anything about sequences at all.`,
+      `Seeing it that way collapses a family of architectures into one picture. Keep the rule <em>j&nbsp;&le;&nbsp;i</em> and you have the decoder every language model uses. Delete the masking line and every node talks to every other — that is an <strong>encoder</strong> block, of the kind BERT-style models and the vision towers in ${chRef('multimodal')} are built from. Point the queries at a <em>different</em> set of nodes and it is <strong>cross attention</strong>, which is how a decoder reads an encoder, an image, or a retrieved document. Three architectures, one adjacency rule.`),
+    graphFigure(),
+
     subhead('Where does word order come from?'),
     prose(
-      `Nothing so far distinguishes &ldquo;dog bites man&rdquo; from &ldquo;man bites dog&rdquo; — attention is a set operation, blind to position. Modern models inject order with <strong>rotary position embeddings (RoPE)</strong>: before the dot product, each query and key vector is rotated, two coordinates at a time, by angles proportional to the token&rsquo;s position — clock hands spinning at many different frequencies. Rotating both q and k by their own positions leaves the dot product depending only on the <em>difference</em> of positions, so attention scores encode relative offset — which generalizes far better than absolute position and is one of the levers behind million-token contexts.`),
+      `Nothing so far distinguishes &ldquo;dog bites man&rdquo; from &ldquo;man bites dog&rdquo; — attention is a set operation, blind to position. That claim is worth measuring rather than believing, so the next figure measures it: permute the input rows with positions switched off, and the output rows come back permuted the same way, to floating-point rounding. Switch positions on and the same permutation changes the answer, because the position vector is attached to the slot and stays behind when the token moves.`),
+    permutationFigure(),
+    prose(
+      `Modern models inject order with <strong>rotary position embeddings (RoPE)</strong>: before the dot product, each query and key vector is rotated, two coordinates at a time, by angles proportional to the token&rsquo;s position — clock hands spinning at many different frequencies. Rotating both q and k by their own positions leaves the dot product depending only on the <em>difference</em> of positions, so attention scores encode relative offset — which generalizes far better than absolute position and is one of the levers behind million-token contexts.`),
     term('RoPE', 'n.', 'at position <em>m</em>, rotate each (q,k) coordinate pair by <em>m</em>·θᵢ, one frequency θᵢ per pair; ⟨q_m, k_n⟩ then depends on <em>m</em>−<em>n</em> only'),
     ropeFigure(),
 

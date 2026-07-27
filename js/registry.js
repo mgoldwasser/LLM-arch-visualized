@@ -44,8 +44,11 @@ export const CHAPTERS = [
   { id: 'assembly',        part: 'machine', title: 'Assembling K3: parameter arithmetic',               load: () => import('./chapters/assembly/index.js') },
 
   /* ---- Part III — making one ---------------------------------------------- */
+  { id: 'data',            part: 'making', title: 'Where the knowledge comes from',                     load: () => import('./chapters/data/index.js') },
   { id: 'pretraining',     part: 'making', title: 'Pretraining: the loop that costs millions',          load: () => import('./chapters/pretraining/index.js') },
+  { id: 'base-model',      part: 'making', sub: true, title: 'The base model: an internet simulator',   load: () => import('./chapters/base-model/index.js') },
   { id: 'posttraining',    part: 'making', title: 'Post-training: SFT, RLHF, RLVR',                     load: () => import('./chapters/posttraining/index.js') },
+  { id: 'rl',              part: 'making', sub: true, title: 'Practice problems: RL and the emergence of thinking', load: () => import('./chapters/rl/index.js') },
 
   /* ---- Part IV — using one ------------------------------------------------ */
   { id: 'inference',       part: 'using', title: 'Inference: prefill, decode, the KV cache',            load: () => import('./chapters/inference/index.js') },

@@ -15,7 +15,7 @@ export function render({ id, num, title }) {
   return chapter(id,
     chapterHead(num, 'Alignment', title),
     prose(
-      `What pretraining produces — the <strong>base model</strong> — is a document continuator, not an assistant. Prompt it with &ldquo;What is the capital of France?&rdquo; and a perfectly calibrated continuation might be <em>another quiz question</em>, because that's how such text often continues on the web. The knowledge is in there; the behavior isn't. Post-training is a short, cheap sequence of stages (a sliver of pretraining's compute) that reshapes behavior without re-teaching content.`),
+      `${chRef('base-model', { cap: true })} left us with a document continuator that has read the internet and will not answer a question. The knowledge is in there; the behavior isn't. Post-training is a short, cheap sequence of stages — a sliver of pretraining's compute — that reshapes behavior without re-teaching content.`),
     pipelineFigure(),
 
     prose(

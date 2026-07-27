@@ -123,6 +123,12 @@ async function doMount(id) {
     const node = await mod.render(ctx);
     slot.node.replaceWith(node);
     slot.node = node;
+    /* MUST stay awaited, and inside this chapter's beginChapter() window:
+       extensions call figure()/claimFig() too, and claimFig() numbers against
+       a module-level cursor. Letting this run un-awaited — or moving it after
+       the next beginChapter() — would file an extension's figures under the
+       following chapter. That is also why doMount is serialized through
+       `chain` below rather than run concurrently per chapter. */
     await mountExtensions(c, node, ctx);
   } catch (err) {
     console.error(`Chapter "${c.id}" failed to render:`, err);

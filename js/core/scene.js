@@ -47,6 +47,13 @@ export function createScene({ id, steps, figure, cols = true, stepVh }) {
   const update = figure(canvas) || (() => {});
   const n = steps.length;
 
+  /* Paint the p=0 frame at build time, for the reason given in scroll.js's
+     pin(). Only the figure's own update is called here — not fadeCards(),
+     which measures geometry and would read zeros before the node is in the
+     document. Card opacity is set on the first real frame instead. */
+  update(0, 0, 0);
+  stepEls[0]?.classList.add('active');
+
   const cards = stepEls.map((s) => s.querySelector('.step-card'));
   const mq = window.matchMedia('(max-width: 63.99rem)');
 
