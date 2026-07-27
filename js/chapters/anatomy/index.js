@@ -9,6 +9,7 @@ import { chapter, chapterHead, prose, term, mathAside, takeaway, chRef, figRef }
 import { K3 } from '../../../data/k3.js';
 
 import { normScene } from './scene-norm.js';
+import { axesFigure } from './fig-axes.js';
 import { activationWidget } from './widget-activations.js';
 import { deletionsFigure } from './fig-deletions.js';
 import { blockCompareFigure } from './fig-block-compare.js';
@@ -33,6 +34,15 @@ export function render({ id, num, title }) {
     normScene(),
     prose(
       `<em>${figRef('anatomy', 'norm')} — norm placement as a gradient-flow problem: post-norm rescales the gradient at every layer; pre-norm gives it an untouched identity path (schematic magnitudes).</em>`),
+
+    /* ---- 1b · which axis does a norm normalize along? ---- */
+    prose(
+      `<strong>Which axis? Rows, not columns.</strong> The description above — subtract a mean, divide by a standard deviation — left out the one detail the name encodes: <em>which</em> numbers the mean is taken over. Lay one batch of activations out as a grid, one row per example, one column per feature. <strong>BatchNorm</strong>, the layer that defined deep learning for the five years before transformers, normalizes each <em>column</em>: it collects feature j&rsquo;s value from every example in the batch and normalizes those together. <strong>LayerNorm</strong> normalizes each <em>row</em>: it collects one example&rsquo;s own features and normalizes those. Identical arithmetic, perpendicular axes — and that is the entire difference between the two layers.`),
+    term('BatchNorm', 'n.', 'normalize each feature <em>across the examples in a batch</em> — the column-wise sibling of LayerNorm, and the layer transformers replaced'),
+
+    axesFigure(),
+    prose(
+      `Every practical property follows from the axis. LayerNorm&rsquo;s computation never crosses between examples, so it needs no running statistics — there is nothing to accumulate across a training run and replay later, because each example carries everything the layer needs. It therefore behaves identically in training and at inference, where BatchNorm has to switch between batch statistics and stored ones. And it is indifferent to batch size, down to a batch of one. BatchNorm has none of this: an example&rsquo;s output depends on which other examples happened to share its batch — a peculiar property for a model whose sequences all have different lengths and which is served one conversation at a time. That is why the transformer line normalizes rows, first with LayerNorm and now with RMSNorm, while the convolutional vision models BatchNorm was designed for went on normalizing columns.`),
 
     /* ---- 2 · activations & gating ---- */
     prose(
