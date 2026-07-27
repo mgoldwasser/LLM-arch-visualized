@@ -368,6 +368,35 @@ body.dark .widget .w-badge { color: #0E1116; }
   .step-card .step-body p { margin: 0 0 0.55rem; }
 }
 
+/* Short viewports — a small phone in portrait, where the strip between the
+   figure and the bottom of the screen is barely taller than one card.
+
+   The card has to lose some height, or it can never be both fully on screen
+   and fully opaque at the same moment — its first line starts fading behind
+   the figure while its last line is still below the fold. Tighter type and no
+   trailing step padding buy that back.
+
+   The card also parks: `position: sticky` holds it near the bottom of the
+   screen for the length of its step, instead of sweeping through the strip
+   continuously. That breaks the tie between two things that are otherwise
+   the same number — how long a step is, which is the scene's scrub range,
+   and how far apart consecutive cards sit, which is how long the reader
+   spends looking at neither of them. Parked, a step can be tall enough to
+   scrub the animation properly without opening a gap.
+
+   (Pulling the steps together with a negative margin would close that gap
+   too, but consecutive cards then overlap in flow, and since the lower one
+   paints on top it would permanently cover the last lines of the one above.) */
+@media (max-width: 63.99rem) and (max-height: 46rem) {
+  .scene-step { min-height: 48vh; padding-bottom: 0; }
+  .scene-step:first-child { min-height: 38vh; }
+  .scene-step:last-child { min-height: 44vh; }
+  .scene-step .step-card { position: sticky; bottom: 0.6rem; padding: 0.75rem 0.95rem; }
+  .step-card .step-n { font-size: 0.6rem; margin-bottom: 0.3rem; }
+  .step-card .step-body { font-size: 0.82rem; line-height: 1.45; }
+  .step-card .step-body p { margin: 0 0 0.45rem; }
+}
+
 /* ---- pinned figure (scroll-scrubbed in place, no step cards) -------------- */
 
 .pin-track { position: relative; }
