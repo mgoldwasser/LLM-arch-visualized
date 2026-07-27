@@ -2,7 +2,7 @@
    files needs. Nothing here knows the chapter's number: figure numbers come
    from claimFig()/figure(), chapter numbers from chRef(). */
 
-import { el } from '../../core/dom.js';
+import { el, svg } from '../../core/dom.js';
 import { txt, claimFig, PAL } from '../../core/components.js';
 import { reveal } from '../../core/scroll.js';
 import { K3 } from '../../../data/k3.js';
@@ -42,3 +42,43 @@ export const stageTitle = (tag, formula) => [
   txt(24, 32, tag, { size: 11, fill: PAL.attn }),
   txt(24, 54, formula, { size: 12.5, fill: PAL.tx, mono: true }),
 ];
+
+/* Signed number with a true minus sign — used wherever a figure prints a
+   value the reader is meant to check against the arithmetic. */
+export const num = (v, d = 2) => {
+  const s = Math.abs(v).toFixed(d);
+  return (v < 0 && +s !== 0 ? '−' : '') + s;   // never print a signed zero
+};
+
+/* A grid of numeric cells: the matrix widget the derivation figures share.
+   Built once; the caller's update() sets text and fill idempotently from p,
+   so nothing is ever created or destroyed mid-scrub. */
+export function matGrid(x, y, rows, cols, { cw = 46, ch = 32, gap = 4, size = 12, fill = PAL.attn } = {}) {
+  const cells = [];
+  const g = svg('g', {});
+  for (let i = 0; i < rows; i++) {
+    for (let j = 0; j < cols; j++) {
+      const cx = x + j * (cw + gap), cy = y + i * (ch + gap);
+      const rect = svg('rect', { x: cx, y: cy, width: cw, height: ch, rx: 4, fill, 'fill-opacity': 0, stroke: PAL.grid, 'stroke-width': 1 });
+      const label = txt(cx + cw / 2, cy + ch / 2 + size * 0.36, '', { size, fill: PAL.ink, anchor: 'middle', mono: true });
+      g.append(rect, label);
+      cells.push({ rect, label, i, j, cx, cy, cw, ch });
+    }
+  }
+  return {
+    g, cells, at: (i, j) => cells[i * cols + j],
+    w: cols * (cw + gap) - gap, h: rows * (ch + gap) - gap,
+  };
+}
+
+/* The three value vectors Karpathy multiplies into the triangular matrix, and
+   the tiny q/k that make the last step data-dependent. Two figures derive
+   their numbers from these, so both must move together if they ever change. */
+export const TRICK_B = [[2, 7], [6, 4], [6, 5]];
+export const TRICK_Q = [[1.2, -0.8], [0.4, 1.6], [1.6, -1.0]];
+export const TRICK_K = [[1.4, 0.5], [-0.9, 1.7], [1.2, -0.9]];
+
+/* Largest absolute elementwise difference — the whole basis for the
+   "identical" badges, so it is computed, never asserted. */
+export const maxAbsDiff = (X, Y) =>
+  Math.max(...X.map((row, i) => row.map((v, j) => Math.abs(v - Y[i][j]))).flat());
