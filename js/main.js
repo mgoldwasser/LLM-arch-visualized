@@ -111,6 +111,39 @@ async function mountExtensions(c, chapterNode, ctx) {
   }
 }
 
+/* A dropped module fetch must not kill a chapter for the life of the page.
+
+   Chapters are loaded with dynamic import(), and the browser caches a FAILED
+   import against its specifier as hard as a successful one — so a single
+   dropped connection during the initial burst (23 chapters plus extensions,
+   all racing) leaves that chapter showing an error box that no amount of
+   scrolling, and no later visit, will clear. Only a reload fixes it.
+
+   Retrying the same specifier therefore re-reads the cached failure. A query
+   string makes it a new specifier and a real fetch. That is safe here: the
+   failed import produced no module instance to duplicate, and the shared
+   core modules it depends on are already resolved under their own specifiers,
+   so they are not re-instantiated. */
+async function loadWithRetry(c, attempts = 3) {
+  for (let i = 0; ; i++) {
+    try {
+      return i === 0 ? await c.load() : await import(`${moduleUrlFor(c)}?retry=${i}`);
+    } catch (err) {
+      if (i >= attempts - 1) throw err;
+      await new Promise((r) => setTimeout(r, 250 * 2 ** i));
+    }
+  }
+}
+
+/* The registry stores loaders as () => import('./chapters/x/index.js'); the
+   specifier is recoverable from the function source, which is the only handle
+   we have on it. If that ever stops matching, retries simply stop happening —
+   the first attempt still runs normally. */
+function moduleUrlFor(c) {
+  const m = /import\((['"`])(.+?)\1\)/.exec(String(c.load));
+  return m ? new URL(m[2], import.meta.url).href : null;
+}
+
 async function doMount(id) {
   const slot = slots.get(id);
   if (!slot || slot.state !== 'pending') return;
