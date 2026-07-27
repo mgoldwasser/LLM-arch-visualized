@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Reel — How a Trillion-Parameter Model Actually Works</title>
+  <meta name="description" content="Every animation from the book, back to back, with no prose. Scroll it, or press play and watch it go by.">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="reel.css">
+</head>
+<body class="reel">
+  <div class="reel-bar">
+    <button id="play" class="reel-btn" aria-label="Play or pause the autoscroll">▶ play</button>
+    <label class="reel-speed">
+      speed
+      <input id="speed" type="range" min="20" max="260" step="10" value="90" aria-label="Autoscroll speed">
+      <span id="speedv">90</span> px/s
+    </label>
+    <span class="reel-progress"><span id="pbar"></span></span>
+    <span id="pct" class="reel-pct">0%</span>
+    <a class="reel-link" href="../">read the book</a>
+  </div>
+
+  <div id="loading" class="reel-loading">building the reel — mounting every figure…</div>
+  <main id="article" class="article"></main>
+
+  <script type="module" src="reel.js"></script>
+</body>
+</html>

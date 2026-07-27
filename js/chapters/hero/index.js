@@ -43,13 +43,29 @@ function ambientTokens() {
   const root = svgRoot(W, H, { 'aria-hidden': 'true' },
     chips.map((c) => c.g), model, bars);
 
+  // 0.6px per frame at 60fps — the marquee's speed, in px/sec, so the two
+  // clocks below can agree on how fast it should look.
+  const PX_PER_SEC = 0.6 * 60;
+
   let t = 0, running = true;
   const io = new IntersectionObserver(([e]) => { running = e.isIntersecting; }, {});
   io.observe(root);
   (function tick() {
     requestAnimationFrame(tick);
-    if (!running || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    t += 0.6;
+    /* This is the only animation in the book that is not a function of scroll
+       position — it drifts on its own clock, which is what makes it feel
+       alive. For the frame grabber that is the one thing it must not do: the
+       same scroll position has to produce the same pixels every time, or the
+       captured video judders. So /reel publishes a virtual clock while
+       capturing, and the marquee runs off that instead — identical motion at
+       identical speed, but now reproducible. */
+    const virtualSec = window.__captureSeconds;
+    if (virtualSec != null) {
+      t = virtualSec * PX_PER_SEC;
+    } else {
+      if (!running || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      t += 0.6;
+    }
     for (const c of chips) {
       const x = 640 - ((c.off + t) % 1500);
       const fade = x > 520 ? Math.max(0, (610 - x) / 90) : x < 40 ? Math.max(0, x / 40) : 1;
