@@ -39,44 +39,50 @@ MODEL = "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"
 # asks only for pace and attitude, and the silence is placed afterwards by
 # PAUSE markers in the text (see split_pauses). Model does delivery; we do
 # timing.
-# The narrator, in three registers.
+# Two narrators, three registers each.
 #
 # One description applied to every line is what makes TTS narration tiring:
-# the model gives each sentence the same emotional weight, so a definition and
-# a punchline arrive at identical intensity and the whole thing reads as
-# performed. Real explanation has dynamics — mostly level and clear, lifting
-# only where the idea earns it, dropping where it needs room.
+# the model gives every sentence the same emotional weight, so a definition
+# and a punchline arrive at identical intensity and the whole thing reads as
+# performed. Real explanation has dynamics. Two voices give it a second axis —
+# a change of speaker is a change of pace that costs the listener nothing.
 #
-# So the voice is a person plus a register, and the script picks the register
-# per line. BASE carries the great majority; LIFT and HUSH are seasoning. If
-# every line is a LIFT, nothing is.
-PERSON = (
-    "A man from rural Ohio in his late thirties, now living in the California "
-    "Bay Area. His voice is semi-deep and naturally resonant — warm, grounded, "
-    "a little rough around the edges, not a polished broadcaster. Clear "
-    "General American accent. "
-)
-
-REGISTERS = {
-    # The default. Explanation, not performance.
-    "base": PERSON + (
-        "He is explaining how something works, clearly and steadily, at a "
-        "comfortable pace. Matter-of-fact and friendly. Interested in the "
-        "subject but not performing it — the tone of someone talking a friend "
-        "through something on his laptop."),
-    # For the moment an idea pays off. Used sparingly.
-    "lift": PERSON + (
-        "He lights up here — a little faster and brighter, genuinely delighted "
-        "by what he is pointing at. A brief burst of real enthusiasm, the way "
-        "someone sounds when the thing finally clicks. Still natural, never a "
-        "sales pitch."),
-    # For the one sentence that carries the weight.
-    "hush": PERSON + (
-        "He slows down and quietens here, giving a single idea room to land. "
-        "Deliberate and a little lower, letting the words carry the weight "
-        "instead of the delivery."),
+# Danny runs hot: quicker, brighter, the one who is delighted by a result.
+# Charlie runs deep: slower, richer, the one who tells you why it matters.
+# Neither is subtle, neither is overdone. They are cast against the material —
+# Danny for the mechanism and the payoff, Charlie for the stakes and the
+# turns — rather than alternating on a schedule.
+SPEAKERS = {
+    "danny": (
+        "A man in his late twenties from Ohio, now in the California Bay "
+        "Area. Bright, buoyant, slightly higher-pitched voice with a quick "
+        "step to it. Natural and a little unpolished, not a broadcaster. "
+        "Clear General American accent. Infectiously into this stuff. "),
+    "charlie": (
+        "A man in his forties from rural Ohio, now in the California Bay "
+        "Area. Deep, resonant, unhurried voice with real warmth and a bit of "
+        "gravel in it. Natural and grounded, not a broadcaster. Clear "
+        "General American accent. He cares about this material and it shows. "),
 }
-VOICE = REGISTERS["base"]
+
+# Modifiers, appended to whichever speaker is talking. base carries the great
+# majority; lift and hush are seasoning. If every line is a lift, nothing is.
+REGISTERS = {
+    "base": ("He is explaining how something works, clearly and steadily, at "
+             "a comfortable pace. Matter-of-fact and friendly — talking a "
+             "friend through something on his laptop, not performing."),
+    "lift": ("He lights up here — faster and brighter, genuinely delighted by "
+             "what he is pointing at, the way someone sounds when the thing "
+             "finally clicks. Still natural, never a sales pitch."),
+    "hush": ("He slows and quietens here, giving a single idea room to land. "
+             "Deliberate and a little lower, letting the words carry the "
+             "weight instead of the delivery."),
+}
+
+def voice_of(speaker, register):
+    return SPEAKERS[speaker] + REGISTERS.get(register, REGISTERS["base"])
+
+VOICE = voice_of("charlie", "base")
 
 # "spoken || spoken ||0.9 spoken" — "||" is a pause of PAUSE_DEFAULT seconds,
 # "||0.9" is a pause of 0.9. The number is a suffix, not a closing delimiter:
@@ -145,6 +151,7 @@ def main():
     ap.add_argument("--outdir")
     ap.add_argument("--instruct", default=VOICE,
                     help="override the register system entirely")
+    ap.add_argument("--speaker", default="charlie", choices=sorted(SPEAKERS))
     ap.add_argument("--register", default="base",
                     choices=sorted(REGISTERS), help="for --text")
     ap.add_argument("--pause", type=float, default=PAUSE_DEFAULT,
@@ -159,10 +166,10 @@ def main():
     model = load(dev, args.model)
     print(f"[qwen] loaded on {dev} in {time.time()-t0:.0f}s", flush=True)
 
-    def render(text, path, register="base"):
+    def render(text, path, speaker="charlie", register="base"):
         t = time.time()
         instruct = (args.instruct if args.instruct != VOICE
-                    else REGISTERS.get(register, VOICE))
+                    else voice_of(speaker, register))
         pieces, sr = [], None
         for seg in split_pauses(text, args.pause):
             if isinstance(seg, float):
@@ -195,14 +202,15 @@ def main():
                 durations[line["id"]] = sf.info(path).duration
                 continue
             durations[line["id"]] = render(
-                line["text"], str(path), line.get("register", "base"))
+                line["text"], str(path),
+                line.get("speaker", "charlie"), line.get("register", "base"))
         # The durations are the point: the video is cut to them, not the
         # other way round. See tools/capture.mjs --timing.
         (outdir / "durations.json").write_text(json.dumps(durations, indent=1))
         total = sum(durations.values())
         print(f"[qwen] {len(lines)} lines, {total/60:.1f} min of narration")
     elif args.text:
-        render(args.text, args.out, args.register)
+        render(args.text, args.out, args.speaker, args.register)
     else:
         sys.exit("need --text or --script")
 

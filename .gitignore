@@ -2,3 +2,4 @@
 .playwright-mcp/
 .DS_Store
 tools/tts/.venv/
+tools/tts/.venv-chatterbox/
