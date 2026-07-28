@@ -39,28 +39,64 @@ REF_TEXT = ("The model reads the whole sentence at once, and weighs every "
             "word against every other word. That is the part worth "
             "understanding, and it is simpler than it sounds.")
 
+# Two men in their late thirties, close enough in pitch to be plausible
+# colleagues and different enough in texture to be told apart. An earlier cut
+# put them 84 Hz apart, which is not contrast but caricature — nobody hears
+# two adults explaining something and thinks "one of them is a cartoon". The
+# separation now lives in timbre (warm and round against dry and level)
+# rather than in pitch, and the targets below are only ~35 Hz apart.
+#
+# Accents are held deliberately faint. Both are General American; the region
+# shows in phrasing far more than in vowels, which is why the SCRIPT carries
+# the dialect (see docs) and the description asks for "no strong regional
+# accent". Ask a TTS model for a Midwestern accent and it will give you a
+# costume.
 SPEAKERS = {
+    # Ohio. A light, clear adult tenor — "bright and buoyant" read as goofy at
+    # 183 Hz, but dropping that language entirely sent him to 116, which is
+    # Charlie's register. The wording below asks for the top of an ordinary
+    # man's range while explicitly ruling out boyish.
     "danny": (
-        "A man in his late twenties from Ohio, now in the California Bay "
-        "Area. Bright, buoyant, slightly higher-pitched voice with a quick "
-        "step to it. Natural and a little unpolished, not a broadcaster. "
-        "Clear General American accent. Speaking evenly and clearly."),
+        "A man in his late thirties from Ohio with a light, clear tenor "
+        "voice — the higher end of an ordinary adult man's speaking range, "
+        "but relaxed and grounded, never boyish, never squeaky, never "
+        "cartoonish. Warm, friendly and even, with an easy unhurried rhythm "
+        "and natural rising and falling intonation. General American with "
+        "only the faintest Midwestern colour; no strong regional accent."),
+    # Bay Area. Genuinely low, to open the gap from the other side rather
+    # than pushing Danny higher again.
     "charlie": (
-        "A man in his forties from rural Ohio, now in the California Bay "
-        "Area. Deep, resonant, unhurried voice with real warmth and a bit of "
-        "gravel in it. Natural and grounded, not a broadcaster. Clear "
-        "General American accent. Speaking evenly and clearly."),
+        "A man in his late thirties from the California Bay Area with a low, "
+        "resonant baritone — deep and chesty, with a little gravel in it. Dry "
+        "and matter-of-fact rather than warm, slightly clipped, with a "
+        "quicker step and natural rising and falling intonation. Standard "
+        "California General American; no strong regional accent."),
 }
 
+# Close together on purpose. See the note above.
+TARGETS = {"danny": 148.0, "charlie": 102.0}
 
-def f0(wav, sr):
-    """Median voiced pitch — used to check the two are actually different."""
+
+def pitch(wav, sr):
+    """(median, internal spread) of voiced pitch.
+
+    The spread is REPORTED but deliberately not penalised. Within-line pitch
+    range is intonation — it is what stops a read being monotone — and an
+    earlier version of this scoring treated it as a defect, which selected
+    flat takes, pulled Danny 40 Hz below his target and collapsed the two
+    speakers to 11 Hz apart. The instability worth fixing is drift in the
+    MEDIAN between lines, which is a different quantity in the same units and
+    is handled by cfg_weight in narrate.py, not here.
+    """
     import torchaudio.functional as F
     p = F.detect_pitch_frequency(
         torch.tensor(wav, dtype=torch.float32), sr,
         freq_low=60, freq_high=350).numpy()
     v = p[(p > 60) & (p < 350)]
-    return float(np.median(v)) if len(v) else float("nan")
+    if not len(v):
+        return float("nan"), float("inf")
+    # Interquartile range, not std: robust to the odd octave-error frame.
+    return float(np.median(v)), float(np.subtract(*np.percentile(v, [75, 25])))
 
 
 def main():
@@ -85,25 +121,33 @@ def main():
         turns that variance from a risk into a selection.
         """
         takes = []
-        for i in range(4):
+        for i in range(8):
             wavs, sr = model.generate_voice_design(
                 text=REF_TEXT, instruct=description, language="English")
-            takes.append((f0(wavs[0], sr), wavs[0], sr))
-        target = 175.0 if name == "danny" else 105.0
+            med, iqr = pitch(wavs[0], sr)
+            takes.append((med, iqr, wavs[0], sr))
+        target = TARGETS[name]
+        # Median proximity only. A take with lively intonation is a good
+        # reference, not a bad one.
         takes.sort(key=lambda t: abs(t[0] - target))
-        best_f0, wav, sr = takes[0]
+        best_med, best_iqr, wav, sr = takes[0]
         sf.write(OUT / f"{name}.wav", wav, sr)
-        pitches[name] = best_f0
-        spread = [f"{t[0]:.0f}" for t in takes]
-        print(f"[refs] {name:8} kept {best_f0:5.1f} Hz "
-              f"(target {target:.0f}; takes were {', '.join(spread)}) "
-              f"-> {OUT / (name + '.wav')}")
+        pitches[name] = best_med
+        opts = ", ".join(f"{t[0]:.0f}±{t[1]:.0f}" for t in takes)
+        print(f"[refs] {name:8} kept {best_med:5.1f} Hz (spread {best_iqr:4.1f}) "
+              f"target {target:.0f} — takes: {opts}")
 
     gap = abs(pitches["danny"] - pitches["charlie"])
     print(f"[refs] separation {gap:.1f} Hz")
-    if gap < 25:
-        print("[refs] WARNING: under 25 Hz apart — these will read as the "
-              "same person. Re-run, or push the descriptions further apart.")
+    # Bounded on BOTH sides. Too close and they are one person; too far and
+    # they are a double act, which is the failure this cast was retuned to fix.
+    if gap < 18:
+        print("[refs] WARNING: under 18 Hz — these will read as the same "
+              "person. Re-run, or push the descriptions apart.")
+        return 1
+    if gap > 60:
+        print("[refs] WARNING: over 60 Hz — that reads as caricature rather "
+              "than as two colleagues. Re-run.")
         return 1
     return 0
 

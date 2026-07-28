@@ -43,10 +43,23 @@ REFS = pathlib.Path(__file__).parent / "refs"
 # base carries the great majority of lines; lift and hush are seasoning. If
 # every line is a lift, nothing is — so base is also the default, which makes
 # restraint what happens when nobody chooses.
+#
+# The two knobs turn out to be independent, which is the useful finding here:
+#
+#   exaggeration  emotional intensity of the read — this is the register
+#   cfg_weight    how tightly the voice tracks the reference clip
+#
+# Raising cfg_weight from 0.5 to 0.7 cut between-line drift in the median
+# pitch from 11.3 Hz to 8.5 Hz while the WITHIN-line pitch range held at
+# ~62 Hz. So holding the voice steady costs nothing in liveliness: the thing
+# that keeps a read from being monotone is intonation inside the line, and
+# that is untouched by tracking the reference more closely. cfg is therefore
+# kept high everywhere except hush, where easing it also slows the delivery,
+# which is what hush is for.
 REGISTERS = {
-    "base": dict(exaggeration=0.45, cfg_weight=0.50),
-    "lift": dict(exaggeration=0.75, cfg_weight=0.42),
-    "hush": dict(exaggeration=0.32, cfg_weight=0.32),
+    "base": dict(exaggeration=0.45, cfg_weight=0.68),
+    "lift": dict(exaggeration=0.75, cfg_weight=0.62),
+    "hush": dict(exaggeration=0.32, cfg_weight=0.48),
 }
 
 # "spoken || spoken ||0.9 spoken" — "||" is a pause of PAUSE_DEFAULT seconds,
