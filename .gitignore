@@ -1,3 +1,4 @@
 # Playwright MCP session output (snapshots, console logs, screenshots)
 .playwright-mcp/
 .DS_Store
+tools/tts/.venv/
