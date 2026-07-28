@@ -50,6 +50,7 @@ const OPT = {
   to: Number(arg('to', 1)),
   quality: Number(arg('quality', 92)),
   dryRun: argv.includes('--dryRun'),
+  dumpShots: argv.includes('--dumpShots'),
   chrome: arg('chrome', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
 };
 
@@ -224,6 +225,12 @@ const byKind = shots.reduce((a, s) => ((a[s.kind] = (a[s.kind] || 0) + 1), a), {
 log(`${allShots.length} shots in the reel; capturing ${shots.length} ` +
     `(${Object.entries(byKind).map(([k, n]) => `${n} ${k}`).join(', ')})`);
 log(`${totalFrames} frames @ ${OPT.fps}fps = ${(seconds / 60).toFixed(1)} min of video`);
+
+if (OPT.dumpShots) {
+  console.log(JSON.stringify(allShots, null, 1));
+  chrome.kill();
+  process.exit(0);
+}
 
 if (OPT.dryRun) {
   const perChapter = {};

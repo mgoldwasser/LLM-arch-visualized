@@ -141,6 +141,13 @@ for (const ev of ['wheel', 'touchstart']) {
      still  — a figure with no animation, centred and held                    */
 function buildShots() {
   const vh = innerHeight;
+  const capOf = (node) => {
+    const c = node.querySelector('figcaption');
+    if (!c) return '';
+    const clone = c.cloneNode(true);
+    clone.querySelector('.fig-n')?.remove();     // the number, not the caption
+    return clone.textContent.trim();
+  };
   const docY = (node) => node.getBoundingClientRect().top + window.scrollY;
   const shots = [];
 
@@ -158,6 +165,11 @@ function buildShots() {
       chapter: sec?.id || '',
       label: r.el.querySelector('.fig-n')?.textContent?.trim() || '',
       steps,
+      /* The caption and step labels are what the shot actually SHOWS. They
+         are here so narration can be written against the figures rather than
+         from memory of what a chapter was about. */
+      caption: capOf(r.el),
+      stepLabels: [...r.el.querySelectorAll('.step-n')].map((n) => n.textContent.trim()),
       /* Time per step, floored so a one-step figure still gets a beat. A
          four-step scene runs about ten seconds, which is roughly how long
          the same scene takes to scroll through at reading pace. */
@@ -194,6 +206,7 @@ function buildShots() {
       y: docY(fig) + h / 2 - vh / 2,
       chapter: fig.closest('section.chapter')?.id || '',
       label: fig.querySelector('.fig-n')?.textContent?.trim() || '',
+      caption: capOf(fig),
       seconds: 3.2,
     });
   }
