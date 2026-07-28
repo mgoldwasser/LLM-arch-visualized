@@ -81,10 +81,33 @@ REGISTERS = {
 # Bay Area Charlie is "clipped and a step quicker". Pushing Danny faster to
 # make him the energetic one flattened the rate difference to 5 wpm and threw
 # away the only identity cue that does not touch pitch.
+# Both land at ~270 wpm. Tempo is per-speaker only because their REFERENCES
+# read at different speeds — Danny's at 216 wpm against Charlie's 270 — so
+# equal tempo would not give equal pace. Danny's 1.28 is that ratio, not a
+# character choice: the drawl was his reference clip being slow (its
+# description asked for "an easy unhurried rhythm", which was a mistake) plus
+# a tempo of 1.02 that barely touched it.
+#
+# Identity therefore no longer rests on rate at all. It rests on timbre — the
+# two references differ by ~300 Hz of spectral rolloff — and on who tells
+# versus who reacts, which the script controls.
+TARGET_WPM = 270
 SPEAKER_STYLE = {
-    "danny":   dict(exag_offset=0.0, tempo=1.02),
+    "danny":   dict(exag_offset=0.0, tempo=1.28),
     "charlie": dict(exag_offset=0.0, tempo=1.18),
 }
+
+# Emphasis: *word* or *short phrase*. Rendered as its own segment, slowed and
+# pushed a little, with a hair of silence either side.
+#
+# That combination is what emphasis actually IS in speech — people do not just
+# get louder, they slow down and leave a beat around the word. Doing it by
+# segment also means a uniform 270 wpm elsewhere costs nothing: the read stays
+# quick throughout and opens up only where the script says it should.
+EMPH_RE = re.compile(r"\*([^*]+)\*")
+EMPH_TEMPO = 0.80          # relative to the speaker's tempo
+EMPH_EXAG = 0.12           # added to the register's exaggeration
+EMPH_PAD = 0.13            # seconds of silence either side
 
 # "spoken || spoken ||0.9 spoken" — "||" is a pause of PAUSE_DEFAULT seconds,
 # "||0.9" is 0.9. The number is a suffix, not a closing delimiter: as a
@@ -95,15 +118,29 @@ PAUSE_DEFAULT = 0.45
 
 
 def split_pauses(text, default=PAUSE_DEFAULT):
-    """['spoken', 0.6, 'spoken', ...] — segments and the silence between."""
-    parts = PAUSE_RE.split(text)
+    """Segments, silences and emphases.
+
+    Returns a list of floats (seconds of silence) and (text, emphasised)
+    tuples. Emphasis is split out here rather than handled downstream because
+    an emphasised phrase has to be SYNTHESISED separately — it is rendered
+    slower and with more push — and the surrounding words must not be.
+    """
     out = []
-    for i, part in enumerate(parts):
-        if i % 2 == 0:
-            if part.strip():
-                out.append(part.strip())
-        else:
+    for i, part in enumerate(PAUSE_RE.split(text)):
+        if i % 2:
             out.append(float(part) if part else default)
+            continue
+        if not part or not part.strip():
+            continue
+        for j, chunk in enumerate(EMPH_RE.split(part)):
+            if not chunk.strip():
+                continue
+            if j % 2:                       # inside *asterisks*
+                out.append(EMPH_PAD)
+                out.append((chunk.strip(), True))
+                out.append(EMPH_PAD)
+            else:
+                out.append((chunk.strip(), False))
     return out
 
 
@@ -164,7 +201,7 @@ def main():
     outdir = pathlib.Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
-    def render(text, speaker, register, path):
+    def render(text, speaker, register, path, lead=0.0):
         ref = str(REFS / f"{speaker}.wav")
         style = SPEAKER_STYLE.get(speaker, dict(exag_offset=0.0, tempo=1.0))
         knobs = dict(REGISTERS.get(register, REGISTERS["base"]))
@@ -175,12 +212,24 @@ def main():
             if isinstance(seg, float):
                 pieces.append(seg)
                 continue
-            wav = model.generate(seg, audio_prompt_path=ref, **knobs)
-            seg_wav = retime(wav.squeeze(0).cpu().numpy(), sr, style["tempo"])
+            phrase, emph = seg
+            k = dict(knobs)
+            tempo = style["tempo"]
+            if emph:
+                k["exaggeration"] = min(1.0, k["exaggeration"] + EMPH_EXAG)
+                tempo *= EMPH_TEMPO
+            wav = model.generate(phrase, audio_prompt_path=ref, **k)
+            seg_wav = retime(wav.squeeze(0).cpu().numpy(), sr, tempo)
             pieces.append(trim_silence(seg_wav, sr))
-        audio = np.concatenate([
-            np.zeros(int(p * sr), dtype=np.float32) if isinstance(p, float) else p
-            for p in pieces])
+        # A "lead" is silence BEFORE the line. A cut-in needs a beat in front
+        # of it or it treads on the previous speaker; a continuation does not.
+        # One global gap at mix time cannot tell those apart, so it lives per
+        # line in the script.
+        body = [np.zeros(int(p * sr), dtype=np.float32) if isinstance(p, float) else p
+                for p in pieces]
+        if lead > 0:
+            body.insert(0, np.zeros(int(lead * sr), dtype=np.float32))
+        audio = np.concatenate(body)
         sf.write(path, audio, sr)
         return len(audio) / sr
 
@@ -196,7 +245,8 @@ def main():
                 durations[name] = sf.info(path).duration
                 continue
             durations[name] = render(
-                line["text"], sp, line.get("register", "base"), str(path))
+                line["text"], sp, line.get("register", "base"), str(path),
+                float(line.get("lead", 0.0)))
         # The chosen take is what the video is cut to.
         chosen = line.get("speaker", "charlie")
         durations[line["id"]] = durations.get(

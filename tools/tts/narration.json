@@ -1,122 +1,623 @@
 [
-{"id":"s000","speaker":"charlie","register":"base","text":"So the model we're going to take apart has two point eight trillion numbers in it. ||0.5 And that number is meaningless right now. ||0.45 By the end of this it won't be — ||0.4 you'll know what every one of them is doing there."},
-{"id":"s001","speaker":"danny","register":"base","text":"And honestly the thing that got me, ||0.35 when I actually went through this — ||0.4 it's so much simpler than the number makes it sound."},
-
-{"id":"s002","speaker":"charlie","register":"base","text":"Right, so let's start with the job. ||0.45 You give it some text. ||0.35 It hands back a probability for every word that could come next. ||0.5 That's it. ||0.4 That's the entire interface."},
-{"id":"s003","speaker":"charlie","register":"base","text":"There's no database in there. ||0.35 No lookup table, no grammar engine. ||0.45 One function, ||0.3 run over and over, ||0.35 feeding its own output back in."},
-{"id":"s003b","speaker":"danny","register":"base","text":"Every single thing you've seen a chatbot do ||0.4 is that loop."},
-
-{"id":"s004","speaker":"charlie","register":"base","text":"Okay. ||0.35 Foundations. ||0.4 A vector is a list of numbers, ||0.35 and you can think of it as an arrow pointing somewhere."},
-{"id":"s005","speaker":"charlie","register":"base","text":"And the one operation you need is the dot product. ||0.4 Multiply two lists together pairwise, ||0.3 add up the result. ||0.4 One number comes out."},
-{"id":"s006","speaker":"charlie","register":"base","text":"That number tells you how much the two arrows agree. ||0.45 Big if they point the same way. ||0.35 Zero if they're unrelated."},
-{"id":"s007","speaker":"danny","register":"lift","text":"And that's the whole model! ||0.4 I'm not being cute — ||0.35 stack enough of those and you have literally everything that follows."},
-{"id":"s008","speaker":"charlie","register":"base","text":"Stack them and you get a matrix multiply, ||0.35 which is the operation the entire industry is built on."},
-
-{"id":"s009","speaker":"charlie","register":"base","text":"Now, a neuron. ||0.4 Take your inputs, ||0.3 weight them, ||0.3 add them up, ||0.35 and then bend the result a little."},
-{"id":"s010","speaker":"charlie","register":"base","text":"That bend is doing more work than it looks like. ||0.45 Without it, you can stack a thousand layers ||0.35 and the whole thing collapses back into one multiplication."},
-{"id":"s011","speaker":"danny","register":"base","text":"A thousand layers of nothing."},
-{"id":"s012","speaker":"charlie","register":"base","text":"Pretty much. ||0.35 With it, you can approximate more or less any function you want."},
-{"id":"s013","speaker":"danny","register":"base","text":"And that's from the eighties, right? ||0.4 That part isn't new at all."},
-
-{"id":"s014","speaker":"charlie","register":"base","text":"Not even a little. ||0.4 Same with learning. ||0.45 You make a guess, ||0.3 you measure how wrong it was, ||0.35 and you nudge every number in the direction that would have been less wrong."},
-{"id":"s015","speaker":"charlie","register":"base","text":"The loss is one number for how badly you did. ||0.4 The gradient is the direction that reduces it."},
-{"id":"s016","speaker":"charlie","register":"base","text":"You take a small step downhill. ||0.4 Then you do it again."},
-{"id":"s017","speaker":"danny","register":"base","text":"See, this is the part I had to sit with for a while. ||0.45 Nobody designs the model. ||0.4 You just... ||0.35 keep rolling downhill for a few million steps ||0.35 and the design falls out."},
-{"id":"s018","speaker":"charlie","register":"hush","text":"The hill does the designing. ||0.5 That's the whole idea."},
-
-{"id":"s019","speaker":"charlie","register":"base","text":"Two more pieces. ||0.4 Softmax turns a pile of raw scores into probabilities — ||0.35 exponentiate, ||0.3 divide by the total, ||0.35 now it sums to one."},
-{"id":"s020","speaker":"charlie","register":"base","text":"And cross entropy measures how surprised the model was by the correct answer. ||0.45 Confident and right costs almost nothing. ||0.4 Confident and wrong is expensive."},
-{"id":"s021","speaker":"danny","register":"base","text":"Which means the thing it's minimizing, ||0.35 for months, ||0.35 across thousands of machines — ||0.45 is its own surprise."},
-{"id":"s022","speaker":"danny","register":"base","text":"That's it. ||0.4 That's the objective."},
-
-{"id":"s023","speaker":"charlie","register":"base","text":"So why did this take until twenty seventeen? ||0.45 People had language models for decades."},
-{"id":"s024","speaker":"charlie","register":"base","text":"You could count word pairs, ||0.35 which works until it doesn't. ||0.4 Then recurrent networks could actually remember things — ||0.35 but strictly one word at a time, in order."},
-{"id":"s025","speaker":"charlie","register":"base","text":"And that's the wall. ||0.4 If word five can't be computed until word four is done, ||0.4 you can't spread the work across a thousand GPUs."},
-{"id":"s026","speaker":"danny","register":"base","text":"So the breakthrough isn't a smarter model."},
-{"id":"s027","speaker":"charlie","register":"hush","text":"It's a model you could parallelize. ||0.5 That's the whole revolution."},
-
-{"id":"s028","speaker":"charlie","register":"base","text":"Okay, so text comes in and gets chopped into tokens — ||0.35 not letters, not words, ||0.3 something in between. ||0.4 And each one gets a vector attached to it."},
-{"id":"s029","speaker":"charlie","register":"base","text":"Those vectors are learned. ||0.4 Nobody sits down and assigns them."},
-{"id":"s030","speaker":"danny","register":"base","text":"And they end up organized. ||0.45 Words that mean similar things ||0.35 end up pointing in similar directions, ||0.4 just because that helped it predict."},
-
-{"id":"s031","speaker":"charlie","register":"base","text":"Now we can build the thing. ||0.4 There's a stream of numbers running straight down the model, ||0.35 start to finish. ||0.4 Every layer reads it, ||0.3 and adds something back."},
-{"id":"s032","speaker":"charlie","register":"base","text":"Adds. ||0.35 Not replaces. ||0.4 And that one detail is why you can stack ninety of these."},
-{"id":"s033","speaker":"charlie","register":"base","text":"Without it, the gradient has to fight its way back through every layer ||0.35 and it just dies on the way."},
-{"id":"s034","speaker":"danny","register":"base","text":"With it there's a clean path all the way down."},
-{"id":"s035","speaker":"charlie","register":"base","text":"And normalization keeps the numbers from exploding as they go."},
-
-{"id":"s036","speaker":"charlie","register":"base","text":"Inside a layer there are really two jobs. ||0.4 Something that moves information between positions, ||0.4 and something that thinks about each position on its own."},
-{"id":"s037","speaker":"charlie","register":"base","text":"Attention, ||0.3 and the feed-forward block."},
-{"id":"s038","speaker":"danny","register":"base","text":"Can I flag one thing here? ||0.4 Because this surprised me. ||0.45 Everyone talks about attention like it's the whole model."},
-{"id":"s039","speaker":"danny","register":"base","text":"Most of the parameters aren't in attention. ||0.4 They're in the boring block next to it."},
-{"id":"s040","speaker":"charlie","register":"base","text":"Attention is the clever part. ||0.4 It is not the big part."},
-
-{"id":"s041","speaker":"charlie","register":"base","text":"Alright. ||0.35 Attention itself. ||0.5 Every token produces three things. ||0.4 A query — what am I looking for. ||0.35 A key — what do I have. ||0.35 And a value — what I'll hand over if you pick me."},
-{"id":"s042","speaker":"charlie","register":"base","text":"You dot every query against every key. ||0.4 That gives you a score for every pair. ||0.35 Softmax those, ||0.3 and now they're weights that add up to one."},
-{"id":"s043","speaker":"charlie","register":"base","text":"Then each token takes a weighted blend of everyone's values."},
-{"id":"s044","speaker":"danny","register":"lift","text":"And all of it happens at once! ||0.45 Every token, against every other token, ||0.35 in one matrix multiply. ||0.4 That's the thing the recurrent nets couldn't do."},
-{"id":"s045","speaker":"charlie","register":"base","text":"You do have to scale the scores down first, ||0.35 or the softmax saturates and the gradients vanish."},
-{"id":"s046","speaker":"charlie","register":"base","text":"And you mask the future — ||0.35 position five doesn't get to look at position six."},
-{"id":"s047","speaker":"danny","register":"base","text":"Otherwise predicting the next word is a bit easy, ||0.35 since it's already read it."},
-{"id":"s048","speaker":"charlie","register":"base","text":"Run several of these in parallel and they specialize. ||0.45 One head tracks syntax. ||0.35 Another tracks what a pronoun refers to."},
-{"id":"s049","speaker":"danny","register":"base","text":"And nobody assigned those. ||0.4 They just showed up because they were useful."},
-{"id":"s050","speaker":"charlie","register":"base","text":"One catch: attention has no idea what order the words are in. ||0.45 To it, a sentence is a set."},
-{"id":"s051","speaker":"charlie","register":"hush","text":"So you rotate each direction by its position. ||0.5 And now the geometry itself is carrying the word order."},
-
-{"id":"s052","speaker":"charlie","register":"base","text":"There's a cost to all this. ||0.4 Every token against every other token means ||0.35 double the context, ||0.3 quadruple the work."},
-{"id":"s053","speaker":"charlie","register":"base","text":"At a million tokens that's the entire engineering problem."},
-{"id":"s054","speaker":"charlie","register":"base","text":"So you stop shuttling data back and forth to memory. ||0.4 You keep a tile of it in the fast stuff and do all the math right there."},
-{"id":"s055","speaker":"danny","register":"base","text":"Same answer, ||0.3 a fraction of the traffic."},
-{"id":"s056","speaker":"charlie","register":"base","text":"And you let a group of queries share one set of keys, ||0.35 which shrinks what you have to hold onto while generating."},
-{"id":"s057","speaker":"danny","register":"base","text":"Ten years of attention research, ||0.4 and almost all of it is about memory. ||0.4 Not about intelligence."},
-
-{"id":"s058","speaker":"charlie","register":"base","text":"Now — mixture of experts. ||0.4 Instead of one big feed-forward block, ||0.35 you have eight hundred and ninety-six small ones."},
-{"id":"s059","speaker":"charlie","register":"base","text":"And a router picks about sixteen of them for each token."},
-{"id":"s060","speaker":"danny","register":"lift","text":"Okay this is my favorite thing in the whole model. ||0.45 Two point eight trillion parameters, ||0.4 and roughly fifty billion of them actually wake up. ||0.5 The rest are just sitting there asleep!"},
-{"id":"s061","speaker":"charlie","register":"base","text":"You get the capacity of an enormous model ||0.35 at the running cost of a small one."},
-{"id":"s062","speaker":"charlie","register":"base","text":"Add every piece up and the arithmetic closes. ||0.4 No leftover trillions unaccounted for."},
-
-{"id":"s063","speaker":"charlie","register":"base","text":"So where does the knowledge come from? ||0.45 An enormous pile of scraped text — ||0.35 and then you throw almost all of it away."},
-{"id":"s064","speaker":"charlie","register":"base","text":"Deduplicate, ||0.3 filter, ||0.3 score for quality. ||0.4 What survives is a fraction of a percent of what you started with."},
-{"id":"s065","speaker":"danny","register":"base","text":"Which is not the part anybody puts in the press release."},
-
-{"id":"s066","speaker":"charlie","register":"base","text":"Then you train. ||0.4 Forward pass, ||0.3 measure the loss, ||0.3 backward pass, ||0.35 update every weight. ||0.4 Repeat for months."},
-{"id":"s067","speaker":"charlie","register":"base","text":"No single machine holds this model, ||0.35 so you cut it up. ||0.4 Split the batch, ||0.3 split the layers, ||0.3 split the individual matrices."},
-{"id":"s068","speaker":"charlie","register":"base","text":"And all of those pieces have to talk to each other constantly, ||0.35 which is its own enormous problem."},
-{"id":"s069","speaker":"danny","register":"base","text":"And the loss curve drops fast at the start ||0.4 and then just... ||0.35 crawls. ||0.4 For months. ||0.4 That's what the money buys."},
-{"id":"s070","speaker":"charlie","register":"hush","text":"Nobody is teaching it facts anywhere in there. ||0.5 It's only ever getting less surprised."},
-
-{"id":"s071","speaker":"charlie","register":"base","text":"And what comes out the other end is not a chatbot. ||0.45 It's a thing that continues text. ||0.4 Any text."},
-{"id":"s072","speaker":"charlie","register":"base","text":"Ask it a question and it might just write you five more questions, ||0.4 because that's what a page of questions tends to look like."},
-{"id":"s073","speaker":"danny","register":"base","text":"It knows an absurd amount ||0.4 and has no idea it's supposed to be helpful."},
-{"id":"s074","speaker":"charlie","register":"base","text":"And it will state something false ||0.35 with exactly the same confidence as something true."},
-{"id":"s075","speaker":"charlie","register":"hush","text":"Because nothing in that entire process ||0.45 ever taught it the difference."},
-
-{"id":"s076","speaker":"charlie","register":"base","text":"So you fix that afterwards. ||0.4 First with examples — ||0.35 here's a question, here's a good answer, ||0.3 thousands of times."},
-{"id":"s077","speaker":"charlie","register":"base","text":"Then people rank pairs of answers, ||0.35 and you train a second model to predict what they'd prefer. ||0.4 And you optimize against that."},
-{"id":"s078","speaker":"danny","register":"base","text":"Which works. ||0.4 But now you're optimizing a stand-in for what people want, ||0.35 and stand-ins can be gamed."},
-
-{"id":"s079","speaker":"charlie","register":"base","text":"Unless the answer is checkable. ||0.4 Math. ||0.3 Code. ||0.35 Things where you can just run it and see if it's right."},
-{"id":"s080","speaker":"charlie","register":"base","text":"So it attempts a problem many times, ||0.35 and whatever actually worked gets reinforced."},
-{"id":"s081","speaker":"charlie","register":"base","text":"And the answers start getting longer. ||0.4 On their own."},
-{"id":"s082","speaker":"danny","register":"lift","text":"It starts checking its own work! ||0.45 Backing up, trying a different route — ||0.4 and nobody wrote a rule that said do that."},
-{"id":"s083","speaker":"charlie","register":"base","text":"Now, how much of that is genuinely new reasoning ||0.35 versus surfacing something already in there — ||0.4 that's still actively argued about."},
-{"id":"s084","speaker":"danny","register":"base","text":"Worth saying out loud. ||0.4 A lot of confident takes on that one."},
-
-{"id":"s085","speaker":"charlie","register":"base","text":"Okay. ||0.35 Actually running it. ||0.4 Two phases. ||0.4 It reads your entire prompt in one shot, ||0.35 which is fast."},
-{"id":"s086","speaker":"charlie","register":"base","text":"Then it writes one token at a time, ||0.35 and each one has to wait for the one before it."},
-{"id":"s087","speaker":"danny","register":"base","text":"So that's why it streams at you word by word. ||0.4 That's not a UI choice."},
-{"id":"s088","speaker":"charlie","register":"base","text":"And you cache the keys and values instead of recomputing the whole history every step. ||0.4 That cache is the only reason this is affordable."},
-
-{"id":"s089","speaker":"charlie","register":"base","text":"Last piece — changing how it behaves without retraining it."},
-{"id":"s090","speaker":"charlie","register":"base","text":"Turns out you barely have to touch it. ||0.4 Freeze the whole model, ||0.35 train two skinny matrices alongside it, ||0.35 and add their output in."},
-{"id":"s091","speaker":"danny","register":"lift","text":"And at the far end of that you're tuning thirteen numbers. ||0.5 Thirteen! ||0.4 Out of two point eight trillion."},
-
-{"id":"s092","speaker":"charlie","register":"base","text":"And it isn't only text anymore. ||0.4 Cut an image into patches, ||0.35 turn each patch into a vector."},
-{"id":"s093","speaker":"danny","register":"base","text":"Which is exactly what a token already was."},
-{"id":"s094","speaker":"charlie","register":"base","text":"So the model doesn't need to know the difference. ||0.4 Audio, ||0.3 video, ||0.3 same trick — ||0.35 get it into vectors and attention doesn't care where it came from."},
-{"id":"s095","speaker":"danny","register":"base","text":"That's the part that stuck with me, honestly. ||0.45 There's no separate image module. ||0.4 It's the same machinery all the way through."},
-
-{"id":"s096","speaker":"charlie","register":"hush","text":"One mechanism. ||0.45 Predict the next thing. ||0.5 Everything else — ||0.4 all of it — ||0.35 is engineering stacked on top of that."},
-{"id":"s097","speaker":"danny","register":"base","text":"Two point eight trillion numbers. ||0.5 And now you know what every one of them is for."}
+ {
+  "id": "s000",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "So the model we're going to take apart has two point eight trillion numbers in it. ||0.5 And that number is *meaningless right now*. ||0.45 By the end of this it won't be — ||0.4 you'll know what every one of them is doing there."
+ },
+ {
+  "id": "s001",
+  "speaker": "danny",
+  "register": "base",
+  "text": "And honestly the thing that got me, ||0.35 when I actually went through this — ||0.4 it's so much simpler than the number makes it sound.",
+  "lead": 0.9
+ },
+ {
+  "id": "s002",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Right, so let's start with the job. ||0.45 You give it some text. ||0.35 It hands back a probability for every word that could come next. ||0.5 That's *it*. ||0.4 That's the entire interface."
+ },
+ {
+  "id": "s003",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "There's no database in there. ||0.35 No lookup table, no grammar engine. ||0.45 One function, ||0.3 run over and over, ||0.35 feeding its own output back in."
+ },
+ {
+  "id": "s003b",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Every single thing you've seen a chatbot do ||0.4 is that loop."
+ },
+ {
+  "id": "s004",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Okay. ||0.35 Foundations. ||0.4 A vector is a list of numbers, ||0.35 and you can think of it as an arrow pointing somewhere."
+ },
+ {
+  "id": "s005",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And the one operation you need is the dot product. ||0.4 Multiply two lists together pairwise, ||0.3 add up the result. ||0.4 One number comes out."
+ },
+ {
+  "id": "s006",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "That number tells you how much the two arrows agree. ||0.45 Big if they point the same way. ||0.35 Zero if they're unrelated."
+ },
+ {
+  "id": "s007",
+  "speaker": "danny",
+  "register": "lift",
+  "text": "And that's the *whole model*! ||0.4 I'm not being cute — ||0.35 stack enough of those and you have literally everything that follows.",
+  "lead": 0.7
+ },
+ {
+  "id": "s008",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Stack them and you get a matrix multiply, ||0.35 which is the operation the entire industry is built on."
+ },
+ {
+  "id": "s009",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Now, a neuron. ||0.4 Take your inputs, ||0.3 weight them, ||0.3 add them up, ||0.35 and then bend the result a little."
+ },
+ {
+  "id": "s010",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "That bend is doing more work than it looks like. ||0.45 Without it, you can stack a thousand layers ||0.35 and the whole thing collapses back into *one multiplication*."
+ },
+ {
+  "id": "s011",
+  "speaker": "danny",
+  "register": "base",
+  "text": "A thousand layers of nothing.",
+  "lead": 0.5
+ },
+ {
+  "id": "s012",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Pretty much. ||0.35 With it, you can approximate more or less any function you want."
+ },
+ {
+  "id": "s013",
+  "speaker": "danny",
+  "register": "base",
+  "text": "And that's from the eighties, right? ||0.4 That part isn't new at all.",
+  "lead": 0.6
+ },
+ {
+  "id": "s014",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Not even a little. ||0.4 Same with learning. ||0.45 You make a guess, ||0.3 you measure how wrong it was, ||0.35 and you nudge every number in the direction that would have been less wrong."
+ },
+ {
+  "id": "s015",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "The loss is one number for how badly you did. ||0.4 The gradient is the direction that reduces it."
+ },
+ {
+  "id": "s016",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "You take a small step downhill. ||0.4 Then you do it again."
+ },
+ {
+  "id": "s017",
+  "speaker": "danny",
+  "register": "base",
+  "text": "See, this is the part I had to sit with for a while. ||0.45 Nobody designs the model. ||0.4 You just... ||0.35 keep rolling downhill for a few million steps ||0.35 and the design falls out.",
+  "lead": 0.9
+ },
+ {
+  "id": "s018",
+  "speaker": "charlie",
+  "register": "hush",
+  "text": "The hill does the *designing*. ||0.5 That's the whole idea."
+ },
+ {
+  "id": "s019",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Two more pieces. ||0.4 Softmax turns a pile of raw scores into probabilities — ||0.35 exponentiate, ||0.3 divide by the total, ||0.35 now it sums to one."
+ },
+ {
+  "id": "s020",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And cross entropy measures how surprised the model was by the correct answer. ||0.45 Confident and right costs almost nothing. ||0.4 Confident and wrong is expensive."
+ },
+ {
+  "id": "s021",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Which means the thing it's minimizing, ||0.35 for months, ||0.35 across thousands of machines — ||0.45 is its *own surprise*.",
+  "lead": 0.6
+ },
+ {
+  "id": "s022",
+  "speaker": "danny",
+  "register": "base",
+  "text": "That's it. ||0.4 That's the objective."
+ },
+ {
+  "id": "s023",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "So why did this take until twenty seventeen? ||0.45 People had language models for decades."
+ },
+ {
+  "id": "s024",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "You could count word pairs, ||0.35 which works until it doesn't. ||0.4 Then recurrent networks could actually remember things — ||0.35 but strictly one word at a time, in order."
+ },
+ {
+  "id": "s025",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And that's the wall. ||0.4 If word five can't be computed until word four is done, ||0.4 you can't spread the work across a thousand GPUs."
+ },
+ {
+  "id": "s026",
+  "speaker": "danny",
+  "register": "base",
+  "text": "So the breakthrough isn't a smarter model.",
+  "lead": 0.7
+ },
+ {
+  "id": "s027",
+  "speaker": "charlie",
+  "register": "hush",
+  "text": "It's a model you could *parallelize*. ||0.5 That's the whole revolution."
+ },
+ {
+  "id": "s028",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Okay, so text comes in and gets chopped into tokens — ||0.35 not letters, not words, ||0.3 something in between. ||0.4 And each one gets a vector attached to it."
+ },
+ {
+  "id": "s029",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Those vectors are learned. ||0.4 Nobody sits down and assigns them."
+ },
+ {
+  "id": "s030",
+  "speaker": "danny",
+  "register": "base",
+  "text": "And they end up organized. ||0.45 Words that mean similar things ||0.35 end up pointing in similar directions, ||0.4 just because that helped it predict.",
+  "lead": 0.6
+ },
+ {
+  "id": "s031",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Now we can build the thing. ||0.4 There's a stream of numbers running straight down the model, ||0.35 start to finish. ||0.4 Every layer reads it, ||0.3 and adds something back."
+ },
+ {
+  "id": "s032",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "*Adds*. ||0.35 Not replaces. ||0.4 And that one detail is why you can stack ninety of these."
+ },
+ {
+  "id": "s033",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Without it, the gradient has to fight its way back through every layer ||0.35 and it just dies on the way."
+ },
+ {
+  "id": "s034",
+  "speaker": "danny",
+  "register": "base",
+  "text": "With it there's a clean path all the way down.",
+  "lead": 0.5
+ },
+ {
+  "id": "s035",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And normalization keeps the numbers from exploding as they go."
+ },
+ {
+  "id": "s036",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Inside a layer there are really two jobs. ||0.4 Something that moves information between positions, ||0.4 and something that thinks about each position on its own."
+ },
+ {
+  "id": "s037",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Attention, ||0.3 and the feed-forward block."
+ },
+ {
+  "id": "s038",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Can I flag one thing here? ||0.4 Because this surprised me. ||0.45 Everyone talks about attention like it's the whole model.",
+  "lead": 1.0
+ },
+ {
+  "id": "s039",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Most of the parameters aren't in attention. ||0.4 They're in the boring block next to it."
+ },
+ {
+  "id": "s040",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Attention is the clever part. ||0.4 It is *not* the big part."
+ },
+ {
+  "id": "s041",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Alright. ||0.35 Attention itself. ||0.5 Every token produces three things. ||0.4 A query — what am I looking for. ||0.35 A key — what do I have. ||0.35 And a value — what I'll hand over if you pick me."
+ },
+ {
+  "id": "s042",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "You dot every query against every key. ||0.4 That gives you a score for every pair. ||0.35 Softmax those, ||0.3 and now they're weights that add up to one."
+ },
+ {
+  "id": "s043",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Then each token takes a weighted blend of everyone's values."
+ },
+ {
+  "id": "s044",
+  "speaker": "danny",
+  "register": "lift",
+  "text": "And all of it happens *at once*! ||0.45 Every token, against every other token, ||0.35 in one matrix multiply. ||0.4 That's the thing the recurrent nets couldn't do.",
+  "lead": 0.7
+ },
+ {
+  "id": "s045",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "You do have to scale the scores down first, ||0.35 or the softmax saturates and the gradients vanish."
+ },
+ {
+  "id": "s046",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And you mask the future — ||0.35 position five doesn't get to look at position six."
+ },
+ {
+  "id": "s047",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Otherwise predicting the next word is a bit easy, ||0.35 since it's already read it.",
+  "lead": 0.5
+ },
+ {
+  "id": "s048",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Run several of these in parallel and they specialize. ||0.45 One head tracks syntax. ||0.35 Another tracks what a pronoun refers to."
+ },
+ {
+  "id": "s049",
+  "speaker": "danny",
+  "register": "base",
+  "text": "And nobody assigned those. ||0.4 They just showed up because they were useful.",
+  "lead": 0.5
+ },
+ {
+  "id": "s050",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "One catch: attention has no idea what order the words are in. ||0.45 To it, a sentence is a set."
+ },
+ {
+  "id": "s051",
+  "speaker": "charlie",
+  "register": "hush",
+  "text": "So you rotate each direction by its position. ||0.5 And now the geometry itself is carrying the *word order*."
+ },
+ {
+  "id": "s052",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "There's a cost to all this. ||0.4 Every token against every other token means ||0.35 double the context, ||0.3 quadruple the work."
+ },
+ {
+  "id": "s053",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "At a million tokens that's the entire engineering problem."
+ },
+ {
+  "id": "s054",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "So you stop shuttling data back and forth to memory. ||0.4 You keep a tile of it in the fast stuff and do all the math right there."
+ },
+ {
+  "id": "s055",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Same answer, ||0.3 a fraction of the traffic.",
+  "lead": 0.5
+ },
+ {
+  "id": "s056",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And you let a group of queries share one set of keys, ||0.35 which shrinks what you have to hold onto while generating."
+ },
+ {
+  "id": "s057",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Ten years of attention research, ||0.4 and almost all of it is about memory. ||0.4 Not about intelligence.",
+  "lead": 0.8
+ },
+ {
+  "id": "s058",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Now — mixture of experts. ||0.4 Instead of one big feed-forward block, ||0.35 you have eight hundred and ninety-six small ones."
+ },
+ {
+  "id": "s059",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And a router picks about sixteen of them for each token."
+ },
+ {
+  "id": "s060",
+  "speaker": "danny",
+  "register": "lift",
+  "text": "Okay this is my favorite thing in the whole model. ||0.45 Two point eight trillion parameters, ||0.4 and roughly fifty billion of them actually wake up. ||0.5 The rest are just sitting there *asleep*!",
+  "lead": 1.0
+ },
+ {
+  "id": "s061",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "You get the capacity of an enormous model ||0.35 at the running cost of a small one."
+ },
+ {
+  "id": "s062",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Add every piece up and the arithmetic closes. ||0.4 No leftover trillions unaccounted for."
+ },
+ {
+  "id": "s063",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "So where does the knowledge come from? ||0.45 An enormous pile of scraped text — ||0.35 and then you throw almost all of it away."
+ },
+ {
+  "id": "s064",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Deduplicate, ||0.3 filter, ||0.3 score for quality. ||0.4 What survives is a fraction of a percent of what you started with."
+ },
+ {
+  "id": "s065",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Which is not the part anybody puts in the press release.",
+  "lead": 0.8
+ },
+ {
+  "id": "s066",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Then you train. ||0.4 Forward pass, ||0.3 measure the loss, ||0.3 backward pass, ||0.35 update every weight. ||0.4 Repeat for months."
+ },
+ {
+  "id": "s067",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "No single machine holds this model, ||0.35 so you cut it up. ||0.4 Split the batch, ||0.3 split the layers, ||0.3 split the individual matrices."
+ },
+ {
+  "id": "s068",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And all of those pieces have to talk to each other constantly, ||0.35 which is its own enormous problem."
+ },
+ {
+  "id": "s069",
+  "speaker": "danny",
+  "register": "base",
+  "text": "And the loss curve drops fast at the start ||0.4 and then just... ||0.35 crawls. ||0.4 For months. ||0.4 That's what the money buys.",
+  "lead": 0.7
+ },
+ {
+  "id": "s070",
+  "speaker": "charlie",
+  "register": "hush",
+  "text": "Nobody is teaching it facts anywhere in there. ||0.5 It's only ever getting *less surprised*."
+ },
+ {
+  "id": "s071",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And what comes out the other end is not a chatbot. ||0.45 It's a thing that continues text. ||0.4 Any text."
+ },
+ {
+  "id": "s072",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Ask it a question and it might just write you five more questions, ||0.4 because that's what a page of questions tends to look like."
+ },
+ {
+  "id": "s073",
+  "speaker": "danny",
+  "register": "base",
+  "text": "It knows an absurd amount ||0.4 and has no idea it's supposed to be helpful.",
+  "lead": 0.6
+ },
+ {
+  "id": "s074",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And it will state something false ||0.35 with exactly the same confidence as something true."
+ },
+ {
+  "id": "s075",
+  "speaker": "charlie",
+  "register": "hush",
+  "text": "Because nothing in that entire process ||0.45 ever taught it the *difference*."
+ },
+ {
+  "id": "s076",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "So you fix that afterwards. ||0.4 First with examples — ||0.35 here's a question, here's a good answer, ||0.3 thousands of times."
+ },
+ {
+  "id": "s077",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Then people rank pairs of answers, ||0.35 and you train a second model to predict what they'd prefer. ||0.4 And you optimize against that."
+ },
+ {
+  "id": "s078",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Which works. ||0.4 But now you're optimizing a stand-in for what people want, ||0.35 and stand-ins can be gamed.",
+  "lead": 0.8
+ },
+ {
+  "id": "s079",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Unless the answer is checkable. ||0.4 Math. ||0.3 Code. ||0.35 Things where you can just run it and see if it's right."
+ },
+ {
+  "id": "s080",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "So it attempts a problem many times, ||0.35 and whatever actually worked gets reinforced."
+ },
+ {
+  "id": "s081",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And the answers start getting longer. ||0.4 On their own."
+ },
+ {
+  "id": "s082",
+  "speaker": "danny",
+  "register": "lift",
+  "text": "It starts checking its *own work*! ||0.45 Backing up, trying a different route — ||0.4 and nobody wrote a rule that said do that.",
+  "lead": 0.9
+ },
+ {
+  "id": "s083",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Now, how much of that is genuinely new reasoning ||0.35 versus surfacing something already in there — ||0.4 that's still actively argued about."
+ },
+ {
+  "id": "s084",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Worth saying out loud. ||0.4 A lot of confident takes on that one.",
+  "lead": 0.7
+ },
+ {
+  "id": "s085",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Okay. ||0.35 Actually running it. ||0.4 Two phases. ||0.4 It reads your entire prompt in one shot, ||0.35 which is fast."
+ },
+ {
+  "id": "s086",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Then it writes one token at a time, ||0.35 and each one has to wait for the one before it."
+ },
+ {
+  "id": "s087",
+  "speaker": "danny",
+  "register": "base",
+  "text": "So that's why it streams at you word by word. ||0.4 That's not a UI choice.",
+  "lead": 0.6
+ },
+ {
+  "id": "s088",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And you cache the keys and values instead of recomputing the whole history every step. ||0.4 That cache is the only reason this is affordable."
+ },
+ {
+  "id": "s089",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Last piece — changing how it behaves without retraining it."
+ },
+ {
+  "id": "s090",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Turns out you barely have to touch it. ||0.4 Freeze the whole model, ||0.35 train two skinny matrices alongside it, ||0.35 and add their output in."
+ },
+ {
+  "id": "s091",
+  "speaker": "danny",
+  "register": "lift",
+  "text": "And at the far end of that you're tuning thirteen numbers. ||0.5 *Thirteen!* ||0.4 Out of two point eight trillion.",
+  "lead": 0.9
+ },
+ {
+  "id": "s092",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "And it isn't only text anymore. ||0.4 Cut an image into patches, ||0.35 turn each patch into a vector."
+ },
+ {
+  "id": "s093",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Which is exactly what a token already was.",
+  "lead": 0.5
+ },
+ {
+  "id": "s094",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "So the model doesn't need to know the difference. ||0.4 Audio, ||0.3 video, ||0.3 same trick — ||0.35 get it into vectors and attention doesn't care where it came from."
+ },
+ {
+  "id": "s095",
+  "speaker": "danny",
+  "register": "base",
+  "text": "That's the part that stuck with me, honestly. ||0.45 There's no separate image module. ||0.4 It's the same machinery all the way through.",
+  "lead": 0.8
+ },
+ {
+  "id": "s096",
+  "speaker": "charlie",
+  "register": "hush",
+  "text": "One mechanism. ||0.45 Predict the *next thing*. ||0.5 Everything else — ||0.4 all of it — ||0.35 is engineering stacked on top of that."
+ },
+ {
+  "id": "s097",
+  "speaker": "danny",
+  "register": "base",
+  "text": "Two point eight trillion numbers. ||0.5 And now you know what every one of them is for.",
+  "lead": 0.9
+ }
 ]
