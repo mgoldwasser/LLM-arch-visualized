@@ -82,8 +82,12 @@ SPEAKERS = {
 # What we actually care about is the GAP, not either absolute pitch — that is
 # the quantity a listener reacts to. Picking each voice independently against
 # its own target left the separation to chance, and it landed at 84, then 40.
-TARGET_GAP = 22.0
-GAP_MIN, GAP_MAX = 12.0, 34.0
+# Targeted at the REFERENCE, not at the finished narration. Expression lifts
+# pitch — widening the registers for liveliness took a 24.6 Hz gap out to 39.9
+# — so the references have to start closer than the number we actually want to
+# hear. 10 Hz here lands near 25 once the registers do their work.
+TARGET_GAP = 10.0
+GAP_MIN, GAP_MAX = 5.0, 22.0
 # Both should still land in a plausible adult male speaking range.
 RANGE_OK = (95.0, 155.0)
 

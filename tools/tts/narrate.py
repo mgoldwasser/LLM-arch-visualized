@@ -32,6 +32,10 @@ import re
 import sys
 import time
 
+import shutil
+import subprocess
+import tempfile
+
 import numpy as np
 import soundfile as sf
 import torch
@@ -40,26 +44,46 @@ from chatterbox.tts import ChatterboxTTS
 
 REFS = pathlib.Path(__file__).parent / "refs"
 
-# base carries the great majority of lines; lift and hush are seasoning. If
-# every line is a lift, nothing is — so base is also the default, which makes
-# restraint what happens when nobody chooses.
+# Registers, deliberately WIDE.
 #
-# The two knobs turn out to be independent, which is the useful finding here:
+# An earlier cut had these bunched at exaggeration 0.32/0.45/0.75 with the
+# result that Charlie's median pitch varied by 1.5 Hz across eight lines —
+# his hush and his base came out at the same pitch. That is monotone at the
+# paragraph level, and it is a failure even though it looks like stability on
+# a drift metric. Between-line variation that TRACKS THE CONTENT is what a
+# person does; what is not wanted is variation on identical text, which is a
+# different speaker each take.
 #
-#   exaggeration  emotional intensity of the read — this is the register
-#   cfg_weight    how tightly the voice tracks the reference clip
-#
-# Raising cfg_weight from 0.5 to 0.7 cut between-line drift in the median
-# pitch from 11.3 Hz to 8.5 Hz while the WITHIN-line pitch range held at
-# ~62 Hz. So holding the voice steady costs nothing in liveliness: the thing
-# that keeps a read from being monotone is intonation inside the line, and
-# that is untouched by tracking the reference more closely. cfg is therefore
-# kept high everywhere except hush, where easing it also slows the delivery,
-# which is what hush is for.
+# Measured on this model: exaggeration drives pace and pitch movement
+# together — 0.45 gives ~144 wpm and 37 Hz of intonation, 0.65 gives ~165 wpm
+# and 52 Hz. So the wider spread below buys speed and expression at once.
 REGISTERS = {
-    "base": dict(exaggeration=0.45, cfg_weight=0.68),
-    "lift": dict(exaggeration=0.75, cfg_weight=0.62),
-    "hush": dict(exaggeration=0.32, cfg_weight=0.48),
+    "hush": dict(exaggeration=0.38, cfg_weight=0.50),
+    "base": dict(exaggeration=0.60, cfg_weight=0.65),
+    "lift": dict(exaggeration=0.88, cfg_weight=0.60),
+}
+
+# How the two differ, given that pitch is NOT allowed to do the work: Danny is
+# quicker and more animated, Charlie a touch slower and drier. Rate is a
+# strong identity cue — stronger than a few Hz of pitch — and it costs nothing
+# in timbre. Together with the ~100 Hz spectral-centroid gap between their
+# reference clips, this is what tells them apart.
+# NOTE the offsets are zero. Nudging exaggeration per speaker looked like a
+# free way to make Danny livelier, but exaggeration and pitch are coupled on
+# this model: +0.06 on Danny lifted his median 11 Hz and re-opened the pair to
+# 41 Hz apart, undoing the closeness that took three re-casts to get. Rate is
+# the differentiator precisely because it does NOT touch pitch — atempo is a
+# phase vocoder. Expression is set per LINE by the register; identity is set
+# per SPEAKER by tempo and by the reference clip's timbre.
+# Charlie is the quicker one, which is the opposite of the first guess here.
+# Measured, his reference reads at 247 wpm against Danny's 201 — and that
+# matches how they were written: Ohio Danny has "an easy unhurried rhythm",
+# Bay Area Charlie is "clipped and a step quicker". Pushing Danny faster to
+# make him the energetic one flattened the rate difference to 5 wpm and threw
+# away the only identity cue that does not touch pitch.
+SPEAKER_STYLE = {
+    "danny":   dict(exag_offset=0.0, tempo=1.02),
+    "charlie": dict(exag_offset=0.0, tempo=1.18),
 }
 
 # "spoken || spoken ||0.9 spoken" — "||" is a pause of PAUSE_DEFAULT seconds,
@@ -98,6 +122,28 @@ def trim_silence(wav, sr, floor=0.008, keep_ms=30):
     return wav[max(0, loud[0] - keep): min(len(wav), loud[-1] + keep)]
 
 
+def retime(wav, sr, tempo):
+    """Speed the read up without moving the pitch.
+
+    Chatterbox has no rate control; exaggeration changes pace but drags
+    expression along with it, so it cannot be used to set speed independently.
+    ffmpeg's atempo is a phase vocoder — it changes duration and leaves pitch
+    where it is — which keeps rate available as a separate dial, both for
+    overall pacing and for telling the two speakers apart.
+    """
+    if abs(tempo - 1.0) < 0.01 or not shutil.which("ffmpeg"):
+        return wav
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = f"{d}/in.wav", f"{d}/out.wav"
+        sf.write(src, wav, sr)
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-y", "-i", src,
+             "-filter:a", f"atempo={tempo:.3f}", dst],
+            check=True)
+        out, _ = sf.read(dst)
+    return out.astype(np.float32)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--script", required=True)
@@ -120,14 +166,18 @@ def main():
 
     def render(text, speaker, register, path):
         ref = str(REFS / f"{speaker}.wav")
-        knobs = REGISTERS.get(register, REGISTERS["base"])
+        style = SPEAKER_STYLE.get(speaker, dict(exag_offset=0.0, tempo=1.0))
+        knobs = dict(REGISTERS.get(register, REGISTERS["base"]))
+        knobs["exaggeration"] = min(
+            1.0, max(0.2, knobs["exaggeration"] + style["exag_offset"]))
         pieces, sr = [], model.sr
         for seg in split_pauses(text, args.pause):
             if isinstance(seg, float):
                 pieces.append(seg)
                 continue
             wav = model.generate(seg, audio_prompt_path=ref, **knobs)
-            pieces.append(trim_silence(wav.squeeze(0).cpu().numpy(), sr))
+            seg_wav = retime(wav.squeeze(0).cpu().numpy(), sr, style["tempo"])
+            pieces.append(trim_silence(seg_wav, sr))
         audio = np.concatenate([
             np.zeros(int(p * sr), dtype=np.float32) if isinstance(p, float) else p
             for p in pieces])
