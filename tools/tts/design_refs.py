@@ -51,30 +51,41 @@ REF_TEXT = ("The model reads the whole sentence at once, and weighs every "
 # the dialect (see docs) and the description asks for "no strong regional
 # accent". Ask a TTS model for a Midwestern accent and it will give you a
 # costume.
+# Both men sit in an ordinary adult male speaking range, close together. The
+# difference between them is TEXTURE and PACE, not pitch: one warm and
+# rounded and even, the other drier and flatter and a step quicker. Earlier
+# cuts separated them by 84 Hz and then 40 — roughly an octave and then a
+# fifth — and both read as a double act rather than as two colleagues.
+#
+# Neither description names a voice type any more. "Tenor" and "baritone"
+# were what pulled them apart; asking for two ordinary men and distinguishing
+# them by manner keeps the gap small without making them the same person.
 SPEAKERS = {
-    # Ohio. A light, clear adult tenor — "bright and buoyant" read as goofy at
-    # 183 Hz, but dropping that language entirely sent him to 116, which is
-    # Charlie's register. The wording below asks for the top of an ordinary
-    # man's range while explicitly ruling out boyish.
+    # Ohio. Warm, rounded, even.
     "danny": (
-        "A man in his late thirties from Ohio with a light, clear tenor "
-        "voice — the higher end of an ordinary adult man's speaking range, "
-        "but relaxed and grounded, never boyish, never squeaky, never "
-        "cartoonish. Warm, friendly and even, with an easy unhurried rhythm "
-        "and natural rising and falling intonation. General American with "
-        "only the faintest Midwestern colour; no strong regional accent."),
-    # Bay Area. Genuinely low, to open the gap from the other side rather
-    # than pushing Danny higher again.
+        "A man in his late thirties from Ohio. An ordinary adult man's "
+        "speaking voice in the middle of its range — neither high nor deep. "
+        "Warm, rounded and friendly, relaxed and even, with an easy unhurried "
+        "rhythm and natural rising and falling intonation. General American "
+        "with only the faintest Midwestern colour; no strong regional accent, "
+        "nothing exaggerated."),
+    # Bay Area. Drier, flatter, quicker.
     "charlie": (
-        "A man in his late thirties from the California Bay Area with a low, "
-        "resonant baritone — deep and chesty, with a little gravel in it. Dry "
-        "and matter-of-fact rather than warm, slightly clipped, with a "
-        "quicker step and natural rising and falling intonation. Standard "
-        "California General American; no strong regional accent."),
+        "A man in his late thirties from the California Bay Area. An ordinary "
+        "adult man's speaking voice in the middle of its range — neither high "
+        "nor deep. Dry, flat and matter-of-fact rather than warm, a little "
+        "gravelly, slightly clipped and a step quicker, with natural rising "
+        "and falling intonation. Standard California General American; no "
+        "strong regional accent, nothing exaggerated."),
 }
 
-# Close together on purpose. See the note above.
-TARGETS = {"danny": 148.0, "charlie": 102.0}
+# What we actually care about is the GAP, not either absolute pitch — that is
+# the quantity a listener reacts to. Picking each voice independently against
+# its own target left the separation to chance, and it landed at 84, then 40.
+TARGET_GAP = 22.0
+GAP_MIN, GAP_MAX = 12.0, 34.0
+# Both should still land in a plausible adult male speaking range.
+RANGE_OK = (95.0, 155.0)
 
 
 def pitch(wav, sr):
@@ -111,43 +122,64 @@ def main():
         attn_implementation="eager")
     OUT.mkdir(parents=True, exist_ok=True)
 
-    pitches = {}
-    for name, description in SPEAKERS.items():
-        """Several takes, keep the one nearest the speaker's intended pitch.
+    """Generate a pool per speaker, then choose the PAIR.
 
-        VoiceDesign's instability is the reason this stage exists, and it
-        applies to the reference too — one roll might hand back a Danny who
-        sounds like Charlie. Generating a few and choosing on measured pitch
-        turns that variance from a risk into a selection.
-        """
+    Independent selection optimised each voice against its own pitch target
+    and let the gap between them fall where it may. Since the gap is the thing
+    that reads as "two people" or "a double act", it is what gets optimised
+    here instead: score every candidate pairing on how close its separation is
+    to TARGET_GAP, requiring only that both voices land somewhere plausible
+    and that Danny is the higher of the two.
+    """
+    pool = {}
+    for name, description in SPEAKERS.items():
         takes = []
-        for i in range(8):
+        for _ in range(8):
             wavs, sr = model.generate_voice_design(
                 text=REF_TEXT, instruct=description, language="English")
             med, iqr = pitch(wavs[0], sr)
             takes.append((med, iqr, wavs[0], sr))
-        target = TARGETS[name]
-        # Median proximity only. A take with lively intonation is a good
-        # reference, not a bad one.
-        takes.sort(key=lambda t: abs(t[0] - target))
-        best_med, best_iqr, wav, sr = takes[0]
-        sf.write(OUT / f"{name}.wav", wav, sr)
-        pitches[name] = best_med
-        opts = ", ".join(f"{t[0]:.0f}±{t[1]:.0f}" for t in takes)
-        print(f"[refs] {name:8} kept {best_med:5.1f} Hz (spread {best_iqr:4.1f}) "
-              f"target {target:.0f} — takes: {opts}")
+        pool[name] = takes
+        print(f"[refs] {name:8} takes: "
+              + ", ".join(f"{t[0]:.0f}" for t in takes), flush=True)
 
-    gap = abs(pitches["danny"] - pitches["charlie"])
-    print(f"[refs] separation {gap:.1f} Hz")
+    best = None
+    for d in pool["danny"]:
+        for c in pool["charlie"]:
+            gap = d[0] - c[0]                      # signed: danny above
+            if gap <= 0:
+                continue
+            if not (RANGE_OK[0] <= d[0] <= RANGE_OK[1]):
+                continue
+            if not (RANGE_OK[0] <= c[0] <= RANGE_OK[1]):
+                continue
+            # Prefer the intended gap; break ties toward livelier references,
+            # since within-line range is intonation and we want it.
+            score = abs(gap - TARGET_GAP) - 0.05 * (d[1] + c[1])
+            if best is None or score < best[0]:
+                best = (score, d, c, gap)
+
+    if best is None:
+        print("[refs] no candidate pair landed in range — re-run")
+        return 1
+
+    _, d, c, gap = best
+    pitches = {}
+    for name, take in (("danny", d), ("charlie", c)):
+        sf.write(OUT / f"{name}.wav", take[2], take[3])
+        pitches[name] = take[0]
+        print(f"[refs] {name:8} chose {take[0]:5.1f} Hz "
+              f"(intonation range {take[1]:4.1f}) -> {OUT / (name + '.wav')}")
+
+    print(f"[refs] separation {gap:.1f} Hz (target {TARGET_GAP:.0f})")
     # Bounded on BOTH sides. Too close and they are one person; too far and
     # they are a double act, which is the failure this cast was retuned to fix.
-    if gap < 18:
-        print("[refs] WARNING: under 18 Hz — these will read as the same "
-              "person. Re-run, or push the descriptions apart.")
+    if gap < GAP_MIN:
+        print(f"[refs] WARNING: under {GAP_MIN:.0f} Hz — one person. Re-run.")
         return 1
-    if gap > 60:
-        print("[refs] WARNING: over 60 Hz — that reads as caricature rather "
-              "than as two colleagues. Re-run.")
+    if gap > GAP_MAX:
+        print(f"[refs] WARNING: over {GAP_MAX:.0f} Hz — reads as a double act "
+              "rather than two colleagues. Re-run.")
         return 1
     return 0
 
