@@ -19,9 +19,11 @@ adjectives about personality. See VOICE below for the one we settled on.
 import argparse
 import json
 import pathlib
+import re
 import sys
 import time
 
+import numpy as np
 import soundfile as sf
 import torch
 from qwen_tts import Qwen3TTSModel
@@ -30,14 +32,58 @@ MODEL = "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"
 
 # The narrator. Written as behaviour rather than biography — "leans on the
 # words that matter" gets a usable read, "is passionate" does not.
+#
+# Note what this does NOT ask for: pauses. Asking a TTS model to be brisk AND
+# to pause is asking it to hold two opposite tempos at once, and it splits the
+# difference — an even, medium read with neither quality. So the description
+# asks only for pace and attitude, and the silence is placed afterwards by
+# PAUSE markers in the text (see split_pauses). Model does delivery; we do
+# timing.
 VOICE = (
-    "A man in his thirties from Ohio who now lives in the California Bay "
-    "Area. He is explaining something he finds genuinely exciting. His "
-    "delivery is calm, warm and unhurried, with a clear General American "
-    "accent and no regional twang. He leans into the words that matter and "
-    "lets the rest sit back, the way someone does when they are sure of the "
-    "idea and want you to get it too. Never breathless, never a hard sell."
+    "A man from rural Ohio in his late thirties, now living in the California "
+    "Bay Area. His voice is semi-deep and naturally resonant — warm, grounded, "
+    "a little rough around the edges, not a polished broadcaster. He is "
+    "cheerful and obviously enjoys what he is talking about. Clear General "
+    "American accent. He talks at a good clip with real momentum, thinking out "
+    "loud as he goes, like a friend showing you something on his laptop."
 )
+
+# "spoken || spoken ||0.9 spoken" — "||" is a pause of PAUSE_DEFAULT seconds,
+# "||0.9" is a pause of 0.9. The number is a suffix, not a closing delimiter:
+# making it a matched pair meant a bare "||" never split, since the regex
+# looked for a second "||" and swallowed the sentence between them.
+PAUSE_RE = re.compile(r"\|\|(\d+(?:\.\d+)?)?")
+PAUSE_DEFAULT = 0.45
+
+
+def split_pauses(text, default=PAUSE_DEFAULT):
+    """['spoken', 0.6, 'spoken', ...] — segments and the silence between."""
+    parts = PAUSE_RE.split(text)
+    out = []
+    for i, part in enumerate(parts):
+        if i % 2 == 0:
+            if part.strip():
+                out.append(part.strip())
+        else:
+            out.append(float(part) if part else default)
+    return out
+
+
+def trim_silence(wav, sr, floor=0.008, keep_ms=30):
+    """Strip the model's own leading/trailing silence.
+
+    Necessary for injected pauses to mean anything. Qwen leaves a variable
+    head and tail on every utterance — sometimes 50ms, sometimes 400 — so
+    concatenating raw segments with a fixed 0.5s gap produces gaps that are
+    actually anywhere from 0.6s to 1.3s, and the rhythm wanders. Trim to the
+    speech, then insert exactly the silence asked for.
+    """
+    amp = np.abs(wav)
+    loud = np.where(amp > floor)[0]
+    if len(loud) == 0:
+        return wav
+    keep = int(sr * keep_ms / 1000)
+    return wav[max(0, loud[0] - keep): min(len(wav), loud[-1] + keep)]
 
 
 def device():
@@ -68,6 +114,8 @@ def main():
     ap.add_argument("--out", default="out.wav")
     ap.add_argument("--outdir")
     ap.add_argument("--instruct", default=VOICE)
+    ap.add_argument("--pause", type=float, default=PAUSE_DEFAULT,
+                    help="seconds for a bare || marker")
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--force", action="store_true",
                     help="re-render lines whose wav already exists")
@@ -80,10 +128,22 @@ def main():
 
     def render(text, path):
         t = time.time()
-        wavs, sr = model.generate_voice_design(
-            text=text, instruct=args.instruct, language="English")
-        sf.write(path, wavs[0], sr)
-        dur = len(wavs[0]) / sr
+        pieces, sr = [], None
+        for seg in split_pauses(text, args.pause):
+            if isinstance(seg, float):
+                # Placeholder; filled once sr is known from the first segment.
+                pieces.append(seg)
+                continue
+            wavs, sr = model.generate_voice_design(
+                text=seg, instruct=args.instruct, language="English")
+            pieces.append(trim_silence(wavs[0], sr))
+        if sr is None:
+            raise ValueError("nothing to speak")
+        audio = np.concatenate([
+            np.zeros(int(p * sr), dtype=np.float32) if isinstance(p, float) else p
+            for p in pieces])
+        sf.write(path, audio, sr)
+        dur = len(audio) / sr
         print(f"[qwen] {path}  {dur:5.1f}s  "
               f"({time.time()-t:.0f}s, {dur/(time.time()-t):.2f}x realtime)",
               flush=True)
