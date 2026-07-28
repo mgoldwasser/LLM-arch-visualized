@@ -39,14 +39,44 @@ MODEL = "Qwen/Qwen3-TTS-12Hz-1.7B-VoiceDesign"
 # asks only for pace and attitude, and the silence is placed afterwards by
 # PAUSE markers in the text (see split_pauses). Model does delivery; we do
 # timing.
-VOICE = (
+# The narrator, in three registers.
+#
+# One description applied to every line is what makes TTS narration tiring:
+# the model gives each sentence the same emotional weight, so a definition and
+# a punchline arrive at identical intensity and the whole thing reads as
+# performed. Real explanation has dynamics — mostly level and clear, lifting
+# only where the idea earns it, dropping where it needs room.
+#
+# So the voice is a person plus a register, and the script picks the register
+# per line. BASE carries the great majority; LIFT and HUSH are seasoning. If
+# every line is a LIFT, nothing is.
+PERSON = (
     "A man from rural Ohio in his late thirties, now living in the California "
     "Bay Area. His voice is semi-deep and naturally resonant — warm, grounded, "
-    "a little rough around the edges, not a polished broadcaster. He is "
-    "cheerful and obviously enjoys what he is talking about. Clear General "
-    "American accent. He talks at a good clip with real momentum, thinking out "
-    "loud as he goes, like a friend showing you something on his laptop."
+    "a little rough around the edges, not a polished broadcaster. Clear "
+    "General American accent. "
 )
+
+REGISTERS = {
+    # The default. Explanation, not performance.
+    "base": PERSON + (
+        "He is explaining how something works, clearly and steadily, at a "
+        "comfortable pace. Matter-of-fact and friendly. Interested in the "
+        "subject but not performing it — the tone of someone talking a friend "
+        "through something on his laptop."),
+    # For the moment an idea pays off. Used sparingly.
+    "lift": PERSON + (
+        "He lights up here — a little faster and brighter, genuinely delighted "
+        "by what he is pointing at. A brief burst of real enthusiasm, the way "
+        "someone sounds when the thing finally clicks. Still natural, never a "
+        "sales pitch."),
+    # For the one sentence that carries the weight.
+    "hush": PERSON + (
+        "He slows down and quietens here, giving a single idea room to land. "
+        "Deliberate and a little lower, letting the words carry the weight "
+        "instead of the delivery."),
+}
+VOICE = REGISTERS["base"]
 
 # "spoken || spoken ||0.9 spoken" — "||" is a pause of PAUSE_DEFAULT seconds,
 # "||0.9" is a pause of 0.9. The number is a suffix, not a closing delimiter:
@@ -113,7 +143,10 @@ def main():
     ap.add_argument("--script", help="JSON list of {id, text} to render")
     ap.add_argument("--out", default="out.wav")
     ap.add_argument("--outdir")
-    ap.add_argument("--instruct", default=VOICE)
+    ap.add_argument("--instruct", default=VOICE,
+                    help="override the register system entirely")
+    ap.add_argument("--register", default="base",
+                    choices=sorted(REGISTERS), help="for --text")
     ap.add_argument("--pause", type=float, default=PAUSE_DEFAULT,
                     help="seconds for a bare || marker")
     ap.add_argument("--model", default=MODEL)
@@ -126,8 +159,10 @@ def main():
     model = load(dev, args.model)
     print(f"[qwen] loaded on {dev} in {time.time()-t0:.0f}s", flush=True)
 
-    def render(text, path):
+    def render(text, path, register="base"):
         t = time.time()
+        instruct = (args.instruct if args.instruct != VOICE
+                    else REGISTERS.get(register, VOICE))
         pieces, sr = [], None
         for seg in split_pauses(text, args.pause):
             if isinstance(seg, float):
@@ -135,7 +170,7 @@ def main():
                 pieces.append(seg)
                 continue
             wavs, sr = model.generate_voice_design(
-                text=seg, instruct=args.instruct, language="English")
+                text=seg, instruct=instruct, language="English")
             pieces.append(trim_silence(wavs[0], sr))
         if sr is None:
             raise ValueError("nothing to speak")
@@ -159,14 +194,15 @@ def main():
             if path.exists() and not args.force:
                 durations[line["id"]] = sf.info(path).duration
                 continue
-            durations[line["id"]] = render(line["text"], str(path))
+            durations[line["id"]] = render(
+                line["text"], str(path), line.get("register", "base"))
         # The durations are the point: the video is cut to them, not the
         # other way round. See tools/capture.mjs --timing.
         (outdir / "durations.json").write_text(json.dumps(durations, indent=1))
         total = sum(durations.values())
         print(f"[qwen] {len(lines)} lines, {total/60:.1f} min of narration")
     elif args.text:
-        render(args.text, args.out)
+        render(args.text, args.out, args.register)
     else:
         sys.exit("need --text or --script")
 
