@@ -127,6 +127,14 @@ for (const ev of ['wheel', 'touchstart']) {
    fast one — it only takes longer. */
 function installCaptureApi() {
   document.body.classList.add('capturing');
+  /* Force dark. The figure canvases are dark in both themes, so on the light
+     theme a video is a bright page with dark rectangles punched out of it —
+     the artwork fights its own background. Dark also grades better and is
+     kinder on a phone at night, which is where this gets watched. A headless
+     browser has no saved preference anyway, so without this the theme would
+     be whatever the capture machine's OS happened to prefer. */
+  document.body.classList.remove('light');
+  document.body.classList.add('dark');
   stop();
   window.__reel = {
     height: () => maxY(),

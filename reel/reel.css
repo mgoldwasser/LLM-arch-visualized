@@ -162,3 +162,54 @@ body.capturing .reveal.in {
   transition: none !important;
 }
 body.capturing * { animation: none !important; }
+
+/* ---- capture layout: composed for a 16:9 frame, not for reading -----------
+
+   The book's desktop scene is two columns — step cards left, sticky figure
+   right — which is right when the cards carry paragraphs you read alongside
+   the artwork. In the reel the cards are one short label, so that layout
+   spends half a 1920px frame on empty column and shrinks the figure into the
+   corner, and a tall step track puts two labels on screen at once so the
+   frame contradicts itself about which step it is showing.
+
+   For video, rebuild the scene as one column: the label pinned at the top,
+   the figure large and centred under it, and the step track scrolling
+   beneath both to drive the animation. Note the source order — .scene-cols
+   holds [steps, sticky], so simply switching to `display: block` would stack
+   the figure BELOW every step card and leave it almost no sticky range.
+   Hence flex with an explicit order.                                        */
+
+/* align-items must be reset too: the two-column rule sets `start`, which in a
+   flex COLUMN stops meaning "top-align" and starts meaning "shrink to fit
+   content" on the horizontal axis — leaving the figure at its intrinsic
+   300px inside a 1184px track. */
+body.capturing .scene-cols { display: flex; flex-direction: column; align-items: stretch; }
+body.capturing .scene-cols .scene-sticky { order: -1; }
+body.capturing .scene-track { max-width: 74rem; margin-left: auto; margin-right: auto; }
+
+body.capturing .scene-sticky { top: 12vh; }
+body.capturing .scene-sticky .fig-canvas { margin: 0 auto; }
+
+/* Every card pins to the same spot, but only the active one is visible — so
+   they may overlap freely and the frame still shows exactly one label.
+   !important because scene.js writes an inline opacity to fade cards as they
+   approach the artwork; that behaviour is right for a reader travelling past
+   the figure and wrong here, where the label is a fixed title above it. */
+body.capturing .scene-step { display: block; }
+body.capturing .scene-step .step-card {
+  position: sticky;
+  top: 5vh;
+  max-width: none;
+  text-align: center;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  opacity: 0 !important;
+  transition: none;
+}
+body.capturing .scene-step.active .step-card { opacity: 1 !important; }
+body.capturing .step-card .step-n { font-size: 1.05rem; letter-spacing: 0.18em; }
+
+/* Standalone figures — the ones outside scenes — get the same width. */
+body.capturing .fig.measure, body.capturing .widget.measure { max-width: 74rem; }
+body.capturing .fig figcaption { font-size: 0.9rem; opacity: 0.75; }
