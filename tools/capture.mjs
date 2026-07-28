@@ -19,8 +19,11 @@
 
    Usage:
      node tools/capture.mjs --out reel.mp4
-     node tools/capture.mjs --out sample.mp4 --from 0.30 --to 0.32
-     node tools/capture.mjs --out reel.mp4 --pxPerSec 140 --fps 30
+     node tools/capture.mjs --out sample.mp4 --from 0.30 --to 0.36
+     node tools/capture.mjs --out reel.mp4 --fps 30 --fadeSec 0.45
+
+   --from/--to slice the SHOT LIST, not the page, so a preview always starts
+   and ends on a shot boundary rather than mid-animation.
 
    Requires: a local server on --port (python3 -m http.server 8012), ffmpeg.
 */
@@ -42,10 +45,11 @@ const OPT = {
   width: Number(arg('width', 1920)),
   height: Number(arg('height', 1080)),
   fps: Number(arg('fps', 30)),
-  pxPerSec: Number(arg('pxPerSec', 140)),   // scroll speed → sets the duration
-  from: Number(arg('from', 0)),             // fraction of the reel, for samples
+  fadeSec: Number(arg('fadeSec', 0.45)),    // dissolve between shots
+  from: Number(arg('from', 0)),             // fraction of the SHOT LIST, for samples
   to: Number(arg('to', 1)),
   quality: Number(arg('quality', 92)),
+  dryRun: argv.includes('--dryRun'),
   chrome: arg('chrome', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
 };
 
@@ -170,18 +174,68 @@ for (let waited = 0; ; waited += 500) {
   await sleep(500);
 }
 
-const height = await page.eval('window.__reel.height()');
 await page.eval(`window.__reel.fps = ${OPT.fps}`);
 
-const y0 = Math.round(height * OPT.from);
-const y1 = Math.round(height * OPT.to);
-const span = y1 - y0;
-const totalFrames = Math.max(1, Math.round((span / OPT.pxPerSec) * OPT.fps));
-const seconds = totalFrames / OPT.fps;
+/* ---- the shot plan ------------------------------------------------------ */
 
-log(`reel is ${height}px; capturing ${span}px ` +
-    `(${(OPT.from * 100).toFixed(1)}%→${(OPT.to * 100).toFixed(1)}%)`);
+/* The page hands back a shot list; we turn it into a flat list of frames.
+   Doing the planning up front rather than shot-by-shot means the frame count
+   and the running time are known before a single frame is shot, which is what
+   lets narration be written against real timings. */
+const allShots = await page.eval('JSON.stringify(window.__reel.shots())')
+  .then(JSON.parse);
+
+// --from/--to select a slice of the shot list, for quick previews.
+const shots = allShots.slice(
+  Math.floor(allShots.length * OPT.from),
+  Math.ceil(allShots.length * OPT.to));
+
+const FADE = Math.round(OPT.fadeSec * OPT.fps);   // frames of dissolve per end
+const plan = [];
+
+for (const shot of shots) {
+  const frames = Math.max(2 * FADE + 2, Math.round(shot.seconds * OPT.fps));
+  // The first frame of each shot carries the focus change; see __reel.focus.
+  const focusId = shot.kind === 'anim' ? shot.shotId : -1;
+  for (let f = 0; f < frames; f++) {
+    /* Dissolve through the page background at both ends. Because the fade is
+       an opacity the page applies, one continuous frame stream comes out —
+       no per-shot files to stitch back together. */
+    const opacity = Math.min(1, f / FADE, (frames - 1 - f) / FADE);
+
+    let y;
+    if (shot.kind === 'anim') {
+      /* Hold at each end so the animation is not playing underneath the
+         dissolve — the figure settles, fades out, and the next one fades in
+         already composed. The sweep gets the middle. */
+      const t = (f - FADE) / Math.max(1, frames - 1 - 2 * FADE);
+      y = shot.from + (shot.to - shot.from) * Math.max(0, Math.min(1, t));
+    } else {
+      y = shot.y;
+    }
+    plan.push({ y, opacity, focus: f === 0 ? focusId : null });
+  }
+}
+
+const totalFrames = plan.length;
+const seconds = totalFrames / OPT.fps;
+const byKind = shots.reduce((a, s) => ((a[s.kind] = (a[s.kind] || 0) + 1), a), {});
+
+log(`${allShots.length} shots in the reel; capturing ${shots.length} ` +
+    `(${Object.entries(byKind).map(([k, n]) => `${n} ${k}`).join(', ')})`);
 log(`${totalFrames} frames @ ${OPT.fps}fps = ${(seconds / 60).toFixed(1)} min of video`);
+
+if (OPT.dryRun) {
+  const perChapter = {};
+  for (const s of shots) {
+    perChapter[s.chapter] = (perChapter[s.chapter] || 0) + s.seconds;
+  }
+  for (const [ch, sec] of Object.entries(perChapter)) {
+    log(`  ${ch.padEnd(18)} ${sec.toFixed(0).padStart(4)}s`);
+  }
+  chrome.kill();
+  process.exit(0);
+}
 
 /* ---- encode ------------------------------------------------------------- */
 
@@ -209,8 +263,10 @@ const write = (buf) => ff.stdin.write(buf)
 
 const started = Date.now();
 for (let f = 0; f < totalFrames; f++) {
-  const y = y0 + (span * f) / (totalFrames - 1 || 1);
-  await page.eval(`window.__reel.seek(${y.toFixed(2)}, ${f})`);
+  const { y, opacity, focus } = plan[f];
+  if (focus !== null) await page.eval(`window.__reel.focus(${focus})`);
+  await page.eval(
+    `window.__reel.seek(${y.toFixed(2)}, ${f}, ${opacity.toFixed(4)})`);
   const { data } = await page.send('Page.captureScreenshot', {
     format: 'jpeg', quality: OPT.quality, captureBeyondViewport: false,
   });

@@ -88,6 +88,26 @@ export function trackScene(el, cb) {
   refresh();
 }
 
+/* The scroll range over which each pinned figure runs its animation, in
+   absolute document coordinates: p=0 at `from`, p=1 at `to`.
+
+   This exists for /reel's frame grabber, which builds a video as a montage of
+   animations rather than one long scroll — it needs to know where each
+   animation starts and stops so it can play that span and skip the reading
+   space in between. Read-only; it derives everything from live geometry and
+   mutates nothing, so it cannot affect the page it reports on. */
+export function scrollRanges() {
+  const vh = window.innerHeight;
+  const y = window.scrollY;
+  return tracked
+    .filter((e) => e.mode === 'scene')
+    .map((e) => {
+      const r = e.el.getBoundingClientRect();
+      const top = r.top + y;
+      return { el: e.el, from: top, to: top + Math.max(0, r.height - vh) };
+    });
+}
+
 export function onScrollY(cb) {
   yWatchers.push(cb);
   refresh();

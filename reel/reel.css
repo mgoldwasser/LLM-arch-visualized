@@ -187,18 +187,30 @@ body.capturing .scene-cols { display: flex; flex-direction: column; align-items:
 body.capturing .scene-cols .scene-sticky { order: -1; }
 body.capturing .scene-track { max-width: 74rem; margin-left: auto; margin-right: auto; }
 
-body.capturing .scene-sticky { top: 12vh; }
+body.capturing .scene-sticky { top: 13vh; }
 body.capturing .scene-sticky .fig-canvas { margin: 0 auto; }
 
-/* Every card pins to the same spot, but only the active one is visible — so
-   they may overlap freely and the frame still shows exactly one label.
+/* The label is a title, not a card travelling past the artwork, so it is
+   fixed to the frame rather than positioned in the document. Sticky was the
+   obvious choice and the wrong one: a sticky card is clamped inside its own
+   step box, which sits BELOW the figure in the single-column layout, so at
+   the start of a shot the label landed on top of the drawing.
+
+   Fixed positioning means every scene's label renders at the same spot, and
+   scene.js leaves `.active` set on scenes that have scrolled away — so
+   without a second condition, stale labels from other chapters would stack
+   here. The grabber names the shot it is filming (see __reel.focus) and only
+   that scene's label is allowed to show.
+
    !important because scene.js writes an inline opacity to fade cards as they
-   approach the artwork; that behaviour is right for a reader travelling past
-   the figure and wrong here, where the label is a fixed title above it. */
+   near the artwork — right for a reader travelling past the figure, wrong
+   for a caption held at the top of the frame. */
 body.capturing .scene-step { display: block; }
 body.capturing .scene-step .step-card {
-  position: sticky;
-  top: 5vh;
+  position: fixed;
+  top: 4.5vh;
+  left: 0;
+  right: 0;
   max-width: none;
   text-align: center;
   background: transparent;
@@ -206,8 +218,9 @@ body.capturing .scene-step .step-card {
   box-shadow: none;
   opacity: 0 !important;
   transition: none;
+  z-index: 5;
 }
-body.capturing .scene-step.active .step-card { opacity: 1 !important; }
+body.capturing .shot-focus .scene-step.active .step-card { opacity: 1 !important; }
 body.capturing .step-card .step-n { font-size: 1.05rem; letter-spacing: 0.18em; }
 
 /* Standalone figures — the ones outside scenes — get the same width. */

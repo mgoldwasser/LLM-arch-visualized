@@ -18,7 +18,7 @@
 
 import { CHAPTERS } from '../js/registry.js';
 import { el } from '../js/core/dom.js';
-import { refresh } from '../js/core/scroll.js';
+import { refresh, scrollRanges } from '../js/core/scroll.js';
 import { chNum, beginChapter, resolveFigRefs } from '../js/core/numbering.js';
 
 const article = document.getElementById('article');
@@ -119,6 +119,90 @@ for (const ev of ['wheel', 'touchstart']) {
   addEventListener(ev, () => { if (playing) stop(); }, { passive: true });
 }
 
+/* ---- the shot list ------------------------------------------------------- */
+
+/* A video is not a scroll. Scrolling the whole reel end to end also records
+   everything BETWEEN the animations — the run-in space, the gap after a
+   figure finishes, the travel to the next chapter — which on a page reads as
+   breathing room and on video reads as nothing happening. Worse, the motion
+   is wrong: a video of a scroll is a video of a page moving, when the subject
+   is the figure.
+
+   So the grabber shoots a montage instead. Each animation is one shot, held
+   in place while it plays; the space between shots is not filmed, it is cut.
+   This function is the shot list, and it lives here rather than in the
+   grabber because only the page knows its own geometry.
+
+   Three kinds:
+     title  — a chapter card, held still
+     anim   — a pinned figure, swept across the exact scroll range that drives
+              it (see scrollRanges): the figure is sticky over that span, so
+              it stays put on screen and only the drawing changes
+     still  — a figure with no animation, centred and held                    */
+function buildShots() {
+  const vh = innerHeight;
+  const docY = (node) => node.getBoundingClientRect().top + window.scrollY;
+  const shots = [];
+
+  const ranges = scrollRanges();
+  ranges.forEach((r, i) => { r.el.dataset.shotId = String(i); });
+  for (const [i, r] of ranges.entries()) {
+    const sec = r.el.closest('section.chapter');
+    const steps = r.el.querySelectorAll('.scene-step').length;
+    shots.push({
+      kind: 'anim',
+      shotId: i,
+      at: r.from,
+      from: r.from,
+      to: r.to,
+      chapter: sec?.id || '',
+      label: r.el.querySelector('.fig-n')?.textContent?.trim() || '',
+      steps,
+      /* Time per step, floored so a one-step figure still gets a beat. A
+         four-step scene runs about ten seconds, which is roughly how long
+         the same scene takes to scroll through at reading pace. */
+      seconds: Math.max(5, steps * 2.6 || 6),
+    });
+  }
+
+  // Chapter cards, and the hero as the opening title.
+  for (const head of document.querySelectorAll('.hero, .ch-head')) {
+    const sec = head.closest('section.chapter');
+    shots.push({
+      kind: 'title',
+      at: docY(head),
+      y: docY(head) + head.getBoundingClientRect().height / 2 - vh / 2,
+      chapter: sec?.id || '',
+      label: head.querySelector('h1, h2')?.textContent?.trim() || '',
+      seconds: head.classList.contains('hero') ? 5 : 3,
+    });
+  }
+
+  /* Static figures — the ones no scroll range drives. A figure inside a
+     scene or a pin track is already covered by its anim shot; filming it
+     again as a still would show the same artwork twice. */
+  const animated = new Set();
+  for (const r of ranges) {
+    for (const f of r.el.querySelectorAll('.fig, .widget')) animated.add(f);
+  }
+  for (const fig of document.querySelectorAll('.fig, .widget')) {
+    if (animated.has(fig)) continue;
+    const h = fig.getBoundingClientRect().height;
+    shots.push({
+      kind: 'still',
+      at: docY(fig),
+      y: docY(fig) + h / 2 - vh / 2,
+      chapter: fig.closest('section.chapter')?.id || '',
+      label: fig.querySelector('.fig-n')?.textContent?.trim() || '',
+      seconds: 3.2,
+    });
+  }
+
+  // Document order — the book's order is the argument's order.
+  shots.sort((a, b) => a.at - b.at);
+  return shots;
+}
+
 /* ---- capture API --------------------------------------------------------- */
 
 /* Driven from outside by the frame grabber. Deliberately NOT the autoscroll
@@ -138,13 +222,27 @@ function installCaptureApi() {
   stop();
   window.__reel = {
     height: () => maxY(),
+    shots: buildShots,
+    /* Which shot is being filmed. Only this scene's step label is shown —
+       see reel.css: labels are fixed to the frame, so every scene would
+       otherwise draw its last-active label in the same place. */
+    focus(shotId) {
+      for (const t of document.querySelectorAll('.scene-track')) {
+        t.classList.toggle('shot-focus', t.dataset.shotId === String(shotId));
+      }
+    },
     /* The virtual clock. Anything in the book that animates on wall time reads
        this instead while capturing, so "frame 900" means the same picture on
        any machine at any speed. seek() sets it from the frame index; the
        grabber never has to think about it. */
     fps: 30,
-    async seek(y, frameIndex = null) {
+    /* opacity drives the dissolve between shots. Doing it here rather than in
+       ffmpeg keeps the whole video one continuous frame stream — no
+       per-shot files to stitch — and keeps the fade deterministic along with
+       everything else. */
+    async seek(y, frameIndex = null, opacity = 1) {
       window.__captureSeconds = frameIndex == null ? 0 : frameIndex / window.__reel.fps;
+      article.style.opacity = String(opacity);
       /* `behavior: instant` as well as the CSS override, because this is the
          one place where a smooth scroll would silently corrupt every frame
          rather than merely look wrong. */
