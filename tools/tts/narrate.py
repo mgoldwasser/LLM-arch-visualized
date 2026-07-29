@@ -104,10 +104,10 @@ SPEAKER_STYLE = {
 # get louder, they slow down and leave a beat around the word. Doing it by
 # segment also means a uniform 270 wpm elsewhere costs nothing: the read stays
 # quick throughout and opens up only where the script says it should.
-EMPH_RE = re.compile(r"\*([^*]+)\*")
-EMPH_TEMPO = 0.80          # relative to the speaker's tempo
-EMPH_EXAG = 0.12           # added to the register's exaggeration
-EMPH_PAD = 0.13            # seconds of silence either side
+# Only a pause this long or longer starts a new generation. Below it the
+# pause is carried by punctuation inside one continuous read and widened
+# afterwards. Set high on purpose: fewer generations is better prosody.
+SPLIT_AT = 0.55
 
 # "spoken || spoken ||0.9 spoken" — "||" is a pause of PAUSE_DEFAULT seconds,
 # "||0.9" is 0.9. The number is a suffix, not a closing delimiter: as a
@@ -118,30 +118,65 @@ PAUSE_DEFAULT = 0.45
 
 
 def split_pauses(text, default=PAUSE_DEFAULT):
-    """Segments, silences and emphases.
+    """Split into as FEW generations as possible.
 
-    Returns a list of floats (seconds of silence) and (text, emphasised)
-    tuples. Emphasis is split out here rather than handled downstream because
-    an emphasised phrase has to be SYNTHESISED separately — it is rendered
-    slower and with more push — and the surrounding words must not be.
+    Every split is a separate call to the model, and a phrase generated alone
+    gets a terminal contour — the falling, finished shape of a whole sentence.
+    That is why short fragments sounded forced: "Alright." on its own is a
+    complete utterance, where a person says it leaning into what comes next.
+
+    So splitting is now a last resort. Only a long pause (>= SPLIT_AT) starts
+    a new generation, because at that length the contour really has finished.
+    Everything shorter stays in one utterance, with the pause marked by
+    punctuation the model already knows how to read, and then widened
+    afterwards to the exact length the script asked for.
+
+    Returns a list of floats (silence between generations) and
+    (text, [(gap_seconds), ...]) tuples for each generation.
     """
-    out = []
+    out, buf, gaps = [], [], []
     for i, part in enumerate(PAUSE_RE.split(text)):
         if i % 2:
-            out.append(float(part) if part else default)
-            continue
-        if not part or not part.strip():
-            continue
-        for j, chunk in enumerate(EMPH_RE.split(part)):
-            if not chunk.strip():
-                continue
-            if j % 2:                       # inside *asterisks*
-                out.append(EMPH_PAD)
-                out.append((chunk.strip(), True))
-                out.append(EMPH_PAD)
+            gap = float(part) if part else default
+            if gap >= SPLIT_AT:
+                if buf:
+                    out.append((" ".join(buf), gaps))
+                    buf, gaps = [], []
+                out.append(gap)
             else:
-                out.append((chunk.strip(), False))
+                # Keep it in the same breath. An em dash is the strongest
+                # in-sentence pause the model reads, and it is already the
+                # house style in this script.
+                if buf and not buf[-1].rstrip().endswith(("—", ",", ".", "!", "?", ":")):
+                    buf[-1] = buf[-1].rstrip() + " —"
+                gaps.append(gap)
+            continue
+        chunk = part.strip()
+        if chunk:
+            buf.append(chunk)
+    if buf:
+        out.append((" ".join(buf), gaps))
     return out
+
+
+def mark_emphasis(text):
+    """*word* -> em-dashes around the word, rather than a separate generation.
+
+    Emphasis used to be rendered as its own segment so it could be slowed and
+    pushed. That worked acoustically and was wrong prosodically: it chopped
+    "That's *it*." into three utterances — "That's", "it", "." — each with its
+    own complete contour. Setting the word off with dashes asks the model for
+    the same thing (a beat, then weight on the word) inside a single natural
+    read, which is how a person actually does it.
+    """
+    def sub(m):
+        w = m.group(1).strip()
+        return f"— {w} —"
+    out = re.sub(r"\*([^*]+)\*", sub, text).replace("— —", "—")
+    # "— three things —." reads as a stumble; let the sentence's own
+    # punctuation close the emphasis instead.
+    out = re.sub(r"\s*—\s*([.!?,;:])", r"\1", out)
+    return re.sub(r"\s{2,}", " ", out).strip()
 
 
 def trim_silence(wav, sr, floor=0.008, keep_ms=30):
@@ -201,6 +236,47 @@ def main():
     outdir = pathlib.Path(args.outdir)
     outdir.mkdir(parents=True, exist_ok=True)
 
+    def widen_gaps(wav, sr, wants):
+        """Re-open the pauses the model left, matching them to `wants` in order.
+
+        Naively widening "the longest silence" once per requested pause would
+        inflate the SAME gap repeatedly — after the first pass it is longer
+        than the others, so it wins again. Instead: find every interior
+        silence, take the N longest as the intended pause points, then sort
+        those back into time order and match them one-to-one with the
+        requested durations. Applied back-to-front so earlier offsets stay
+        valid as the array grows.
+        """
+        if not wants:
+            return wav
+        hop = int(sr * 0.005)
+        n = len(wav) // hop * hop
+        if n < hop * 4:
+            return wav
+        env = np.abs(wav[:n]).reshape(-1, hop).max(1)
+        quiet = env < 0.012
+        runs, i = [], 0
+        while i < len(quiet):
+            if quiet[i]:
+                j = i
+                while j < len(quiet) and quiet[j]:
+                    j += 1
+                runs.append((i, j))
+                i = j
+            else:
+                i += 1
+        runs = [(a, b) for a, b in runs if a > 2 and b < len(quiet) - 2]
+        if not runs:
+            return wav
+        # The N longest interior silences are where the punctuation landed.
+        chosen = sorted(sorted(runs, key=lambda r: r[0] - r[1])[:len(wants)])
+        for (a, b), want in sorted(zip(chosen, wants), key=lambda x: -x[0][0]):
+            have = (b - a) * hop / sr
+            if want > have:
+                pad = np.zeros(int((want - have) * sr), dtype=wav.dtype)
+                wav = np.concatenate([wav[:b * hop], pad, wav[b * hop:]])
+        return wav
+
     def render(text, speaker, register, path, lead=0.0):
         ref = str(REFS / f"{speaker}.wav")
         style = SPEAKER_STYLE.get(speaker, dict(exag_offset=0.0, tempo=1.0))
@@ -208,19 +284,19 @@ def main():
         knobs["exaggeration"] = min(
             1.0, max(0.2, knobs["exaggeration"] + style["exag_offset"]))
         pieces, sr = [], model.sr
-        for seg in split_pauses(text, args.pause):
+        for seg in split_pauses(mark_emphasis(text), args.pause):
             if isinstance(seg, float):
                 pieces.append(seg)
                 continue
-            phrase, emph = seg
-            k = dict(knobs)
-            tempo = style["tempo"]
-            if emph:
-                k["exaggeration"] = min(1.0, k["exaggeration"] + EMPH_EXAG)
-                tempo *= EMPH_TEMPO
-            wav = model.generate(phrase, audio_prompt_path=ref, **k)
-            seg_wav = retime(wav.squeeze(0).cpu().numpy(), sr, tempo)
-            pieces.append(trim_silence(seg_wav, sr))
+            phrase, gaps = seg
+            wav = model.generate(phrase, audio_prompt_path=ref, **knobs)
+            seg_wav = retime(wav.squeeze(0).cpu().numpy(), sr, style["tempo"])
+            seg_wav = trim_silence(seg_wav, sr)
+            # Re-open the pauses the model left at the dashes, in order, to
+            # the durations the script asked for.
+            seg_wav = widen_gaps(seg_wav, sr, gaps)
+            pieces.append(seg_wav)
+
         # A "lead" is silence BEFORE the line. A cut-in needs a beat in front
         # of it or it treads on the previous speaker; a continuation does not.
         # One global gap at mix time cannot tell those apart, so it lives per
