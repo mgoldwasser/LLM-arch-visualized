@@ -54,27 +54,23 @@ REFS = pathlib.Path(__file__).parent / "refs"
 # person does; what is not wanted is variation on identical text, which is a
 # different speaker each take.
 #
-# Measured on this model: exaggeration drives pace and pitch movement
-# together — 0.45 gives ~144 wpm and 37 Hz of intonation, 0.65 gives ~165 wpm
-# and 52 Hz. So the wider spread below buys speed and expression at once.
+# The exaggeration/cfg_weight PAIRING matters more than either value, and the
+# pairing here was backwards. Resemble's own guidance is high exaggeration
+# with LOW cfg_weight: exaggeration speeds the read up, and easing cfg gives
+# back the deliberate pacing. Measured on this reference at matched pace:
+#
+#   exag 0.60 / cfg 0.68  (the old setting)   pitch 115, range 32, 273 wpm
+#   exag 0.70 / cfg 0.30  (documented)        pitch 120, range 47, 270 wpm
+#
+# 47% more pitch movement for nothing. The old pairing coupled high
+# exaggeration with high cfg, which pulls in opposite directions — pushing the
+# read to be expressive while holding it tightly to a level reference.
 REGISTERS = {
-    "hush": dict(exaggeration=0.38, cfg_weight=0.50),
-    "base": dict(exaggeration=0.60, cfg_weight=0.65),
-    "lift": dict(exaggeration=0.88, cfg_weight=0.60),
+    "hush": dict(exaggeration=0.50, cfg_weight=0.40),
+    "base": dict(exaggeration=0.70, cfg_weight=0.30),
+    "lift": dict(exaggeration=0.85, cfg_weight=0.26),
 }
 
-# How the two differ, given that pitch is NOT allowed to do the work: Danny is
-# quicker and more animated, Charlie a touch slower and drier. Rate is a
-# strong identity cue — stronger than a few Hz of pitch — and it costs nothing
-# in timbre. Together with the ~100 Hz spectral-centroid gap between their
-# reference clips, this is what tells them apart.
-# NOTE the offsets are zero. Nudging exaggeration per speaker looked like a
-# free way to make Danny livelier, but exaggeration and pitch are coupled on
-# this model: +0.06 on Danny lifted his median 11 Hz and re-opened the pair to
-# 41 Hz apart, undoing the closeness that took three re-casts to get. Rate is
-# the differentiator precisely because it does NOT touch pitch — atempo is a
-# phase vocoder. Expression is set per LINE by the register; identity is set
-# per SPEAKER by tempo and by the reference clip's timbre.
 # Charlie is the quicker one, which is the opposite of the first guess here.
 # Measured, his reference reads at 247 wpm against Danny's 201 — and that
 # matches how they were written: Ohio Danny has "an easy unhurried rhythm",

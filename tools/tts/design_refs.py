@@ -75,25 +75,41 @@ REF_TEXT = ("The model reads the whole sentence at once, and weighs every "
 # Naming the CONTEXT still does the heavy lifting: "recording a conversational
 # podcast in a small studio" carries mic distance, pace and register together
 # in a way that a list of adjectives does not.
+# SCENE-led, with a persona line. Five prompting strategies were compared
+# head to head against the same targets (tools/tts/strategies.py):
+#
+#   prose      104 Hz / 29 range / 272 wpm    2 of 3 windows
+#   persona    134 Hz / 84 range / 266 wpm    2 of 3
+#   scene      115 Hz / 41 range / 294 wpm    3 of 3   <-
+#   analogy    158 Hz / 89 range / 269 wpm    2 of 3
+#   direction  162 Hz / 71 range / 352 wpm    2 of 3
+#
+# Describing the SITUATION beats describing the voice, and it is not close.
+# Prose about vocal qualities — which is what every earlier version here was —
+# came last on pitch and second-last on movement. Naming a room, a listener
+# and a reason to be talking gets pace, mic distance, register and energy for
+# free, because they all follow from the situation; listing them as adjectives
+# asks the model to hold six independent constraints and it picks one.
+#
+# The persona line is kept because it scored best of all on the axis that
+# matters most: 84 Hz of pitch range, twice what prose managed. On its own it
+# overshoots, so it seasons the scene rather than leading it.
 _BASE = (
-    "A man in his late thirties recording a conversational podcast in a "
-    "small studio, mid-conversation and thinking out loud. Natural, "
-    "close-mic'd voice with a little texture in it — lived-in, not polished, "
-    "no announcer quality at all. His delivery moves with what he is saying: "
-    "quicker through the familiar parts, slowing on the thing that matters. "
-    "His pitch moves a lot while he talks — he lifts into a phrase, leans on "
-    "the word that carries it, and drops away at the end of a thought. "
-    "Expressive and melodic, never flat or level, but never performed "
-    "either. Brisk overall. Clear General American accent. ")
+    "Two friends recording a podcast in a small room. One of them is halfway "
+    "through explaining something he is enjoying explaining, talking to the "
+    "person across the table rather than to a microphone. He is a tech guy in "
+    "his late thirties, Stanford educated, lives in the Bay Area, grew up in "
+    "Ohio. He has had a coffee. ")
 
 SPEAKERS = {
-    # The teller. Rounder, a touch lower, carries the long stretches.
+    # The teller — holds the floor, so he settles slightly.
     "danny": _BASE + (
-        "Slightly rounder and warmer in tone, and comfortable holding the "
-        "floor for a while."),
-    # The reactor. Drier and a little more clipped, comes in on top.
+        "This is the one doing most of the talking, and he is comfortable "
+        "taking his time over it."),
+    # The reactor — comes in on top, so he arrives with a bit more edge.
     "charlie": _BASE + (
-        "Slightly drier and more clipped in tone, with a quick step to it."),
+        "This is the one who keeps cutting in with something he noticed, a "
+        "little quicker and drier about it."),
 }
 
 # The windows to select into. A candidate inside a window scores zero on it;
