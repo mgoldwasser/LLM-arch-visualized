@@ -9,14 +9,20 @@
   "id": "s001",
   "speaker": "danny",
   "register": "base",
-  "text": "And honestly the thing that got me, ||0.35 when I actually went through this — ||0.4 it's so much simpler than the number makes it sound.",
-  "lead": 0.9
+  "lead": 0.9,
+  "text": "And I'll say this up front — ||0.4 I'm the one asking the dumb questions today. ||0.45 Every time a math word turns up, ||0.35 I'm stopping you."
+ },
+ {
+  "id": "s001b",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Please do. ||0.4 Because there are about six real ideas in this whole thing, ||0.4 and every one of them is simpler than its name."
  },
  {
   "id": "s002",
   "speaker": "charlie",
   "register": "base",
-  "text": "Right, so let's start with the job. ||0.45 You give it some text. ||0.35 It hands back a probability for every word that could come next. ||0.5 That's *it*. ||0.4 That's the entire interface."
+  "text": "So let's start with the job. ||0.45 You give it some text. ||0.35 It hands back a probability for every word that could come next. ||0.5 That's *it*. ||0.4 That's the entire interface."
  },
  {
   "id": "s003",
@@ -34,64 +40,78 @@
   "id": "s004",
   "speaker": "charlie",
   "register": "base",
-  "text": "Okay. ||0.35 Foundations. ||0.4 A vector is a list of numbers, ||0.35 and you can think of it as an arrow pointing somewhere."
+  "text": "Okay. ||0.35 Foundations. ||0.45 The model can only do arithmetic. ||0.4 So every word has to turn into numbers first — ||0.35 and a list of numbers is a vector. ||0.4 Picture an arrow pointing off somewhere, if that helps."
+ },
+ {
+  "id": "s004b",
+  "speaker": "danny",
+  "register": "base",
+  "lead": 0.5,
+  "text": "So a vector is a list of numbers."
  },
  {
   "id": "s005",
   "speaker": "charlie",
   "register": "base",
-  "text": "And the one operation you need is the dot product. ||0.4 Multiply two lists together pairwise, ||0.3 add up the result. ||0.4 One number comes out."
+  "text": "That's the whole word. ||0.45 And there's exactly one thing you need to do with them: ||0.4 ask whether two arrows point the same way. ||0.45 That's the dot product. ||0.4 Multiply the two lists together pairwise, ||0.3 add up the result. ||0.35 One number comes out."
  },
  {
   "id": "s006",
   "speaker": "charlie",
   "register": "base",
-  "text": "That number tells you how much the two arrows agree. ||0.45 Big if they point the same way. ||0.35 Zero if they're unrelated."
+  "text": "And that number tells you how much the two arrows agree. ||0.45 Big if they point the same way. ||0.35 Zero if they've got nothing to do with each other."
  },
  {
   "id": "s007",
   "speaker": "danny",
   "register": "lift",
-  "text": "And that's the *whole model*! ||0.4 I'm not being cute — ||0.35 stack enough of those and you have literally everything that follows.",
-  "lead": 0.7
+  "lead": 0.7,
+  "text": "And that's the *whole model*! ||0.4 I'm not being cute — ||0.35 stack enough of those and you have literally everything that follows."
  },
  {
   "id": "s008",
   "speaker": "charlie",
   "register": "base",
-  "text": "Stack them and you get a matrix multiply, ||0.35 which is the operation the entire industry is built on."
+  "text": "Do a whole pile of them at once and that's a matrix multiply. ||0.45 Which is a grand phrase for ||0.3 a lot of dot products, ||0.35 and it is the thing the entire industry's hardware exists to do."
  },
  {
   "id": "s009",
   "speaker": "charlie",
   "register": "base",
-  "text": "Now, a neuron. ||0.4 Take your inputs, ||0.3 weight them, ||0.3 add them up, ||0.35 and then bend the result a little."
+  "text": "Now, a neuron. ||0.4 Sounds biological. ||0.35 It isn't. ||0.4 Take your inputs, ||0.3 weight them, ||0.3 add them up — ||0.35 and then bend the result a little."
+ },
+ {
+  "id": "s009b",
+  "speaker": "danny",
+  "register": "base",
+  "lead": 0.6,
+  "text": "Hold on. ||0.4 Bend it a little. ||0.45 That's exactly the kind of thing I'd read straight past. ||0.4 Why does that matter?"
  },
  {
   "id": "s010",
   "speaker": "charlie",
   "register": "base",
-  "text": "That bend is doing more work than it looks like. ||0.45 Without it, you can stack a thousand layers ||0.35 and the whole thing collapses back into *one multiplication*."
+  "text": "It matters more than anything else in that sentence. ||0.45 Without the bend, ||0.4 you can stack a thousand layers ||0.35 and the whole thing collapses back into *one multiplication*."
  },
  {
   "id": "s011",
   "speaker": "danny",
   "register": "base",
-  "text": "A thousand layers of nothing.",
-  "lead": 0.5
+  "lead": 0.5,
+  "text": "A thousand layers of nothing."
  },
  {
   "id": "s012",
   "speaker": "charlie",
   "register": "base",
-  "text": "Pretty much. ||0.35 With it, you can approximate more or less any function you want."
+  "text": "Pretty much. ||0.35 With it, ||0.3 you can approximate more or less any function you want."
  },
  {
   "id": "s013",
   "speaker": "danny",
   "register": "base",
-  "text": "And that's from the eighties, right? ||0.4 That part isn't new at all.",
-  "lead": 0.6
+  "lead": 0.5,
+  "text": "And that's from the eighties, right? ||0.4 That part isn't new at all."
  },
  {
   "id": "s014",
@@ -100,48 +120,68 @@
   "text": "Not even a little. ||0.4 Same with learning. ||0.45 You make a guess, ||0.3 you measure how wrong it was, ||0.35 and you nudge every number in the direction that would have been less wrong."
  },
  {
+  "id": "s014b",
+  "speaker": "danny",
+  "register": "base",
+  "lead": 0.5,
+  "text": "And that's where loss and gradient come in. ||0.45 Which are the two words that made me close the tab, ||0.4 the first time I tried this."
+ },
+ {
   "id": "s015",
   "speaker": "charlie",
   "register": "base",
-  "text": "The loss is one number for how badly you did. ||0.4 The gradient is the direction that reduces it."
+  "text": "They shouldn't have. ||0.4 Loss is one number for how badly you did. ||0.45 Gradient is the direction that makes that number smaller. ||0.4 That is genuinely all those two words mean."
  },
  {
   "id": "s016",
   "speaker": "charlie",
   "register": "base",
-  "text": "You take a small step downhill. ||0.4 Then you do it again."
+  "text": "So you take a small step downhill. ||0.4 Then you do it again."
  },
  {
   "id": "s017",
   "speaker": "danny",
   "register": "base",
-  "text": "See, this is the part I had to sit with for a while. ||0.45 Nobody designs the model. ||0.4 You just... ||0.35 keep rolling downhill for a few million steps ||0.35 and the design falls out.",
-  "lead": 0.9
+  "lead": 0.6,
+  "text": "See, this is the part I had to sit with for a while. ||0.45 Nobody designs the model. ||0.4 You just... ||0.35 keep rolling downhill for a few million steps ||0.35 and the design falls out."
  },
  {
   "id": "s018",
   "speaker": "charlie",
-  "register": "hush",
+  "register": "base",
   "text": "The hill does the *designing*. ||0.5 That's the whole idea."
  },
  {
   "id": "s019",
   "speaker": "charlie",
   "register": "base",
-  "text": "Two more pieces. ||0.4 Softmax turns a pile of raw scores into probabilities — ||0.35 exponentiate, ||0.3 divide by the total, ||0.35 now it sums to one."
+  "text": "Two more pieces and the objective is finished. ||0.45 The model puts out a raw score for every word that could come next. ||0.4 But scores aren't probabilities. ||0.35 Some are negative. ||0.3 They don't add up to anything."
+ },
+ {
+  "id": "s019b",
+  "speaker": "danny",
+  "register": "base",
+  "lead": 0.5,
+  "text": "So you tidy them up."
+ },
+ {
+  "id": "s019c",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "That's softmax. ||0.4 Make everything positive, ||0.35 then divide by the total ||0.35 so the whole set adds up to one. ||0.45 That is the entire operation. ||0.4 Frightening name, ||0.3 about four words of content."
  },
  {
   "id": "s020",
   "speaker": "charlie",
   "register": "base",
-  "text": "And cross entropy measures how surprised the model was by the correct answer. ||0.45 Confident and right costs almost nothing. ||0.4 Confident and wrong is expensive."
+  "text": "And cross entropy scores the result. ||0.45 It measures how surprised the model was by the correct answer. ||0.4 Confident and right costs almost nothing. ||0.4 Confident and wrong is expensive."
  },
  {
   "id": "s021",
   "speaker": "danny",
   "register": "base",
-  "text": "Which means the thing it's minimizing, ||0.35 for months, ||0.35 across thousands of machines — ||0.45 is its *own surprise*.",
-  "lead": 0.6
+  "lead": 0.7,
+  "text": "Which means the thing it's minimizing, ||0.35 for months, ||0.35 across thousands of machines — ||0.45 is its *own surprise*."
  },
  {
   "id": "s022",
@@ -159,32 +199,32 @@
   "id": "s024",
   "speaker": "charlie",
   "register": "base",
-  "text": "You could count word pairs, ||0.35 which works until it doesn't. ||0.4 Then recurrent networks could actually remember things — ||0.35 but strictly one word at a time, in order."
+  "text": "You could count word pairs, ||0.35 which works until it doesn't. ||0.4 Then recurrent networks could actually remember things — ||0.35 but strictly one word at a time, ||0.3 in order."
  },
  {
   "id": "s025",
   "speaker": "charlie",
   "register": "base",
-  "text": "And that's the wall. ||0.4 If word five can't be computed until word four is done, ||0.4 you can't spread the work across a thousand GPUs."
+  "text": "And that's the wall. ||0.4 If word five can't be worked out until word four is done, ||0.4 a thousand chips don't help you. ||0.35 They'd just be queuing."
  },
  {
   "id": "s026",
   "speaker": "danny",
   "register": "base",
-  "text": "So the breakthrough isn't a smarter model.",
-  "lead": 0.7
+  "lead": 0.6,
+  "text": "So the breakthrough isn't a smarter model."
  },
  {
   "id": "s027",
   "speaker": "charlie",
-  "register": "hush",
-  "text": "It's a model you could *parallelize*. ||0.5 That's the whole revolution."
+  "register": "base",
+  "text": "It's a model you could run all at once. ||0.5 That's the whole revolution."
  },
  {
   "id": "s028",
   "speaker": "charlie",
   "register": "base",
-  "text": "Okay, so text comes in and gets chopped into tokens — ||0.35 not letters, not words, ||0.3 something in between. ||0.4 And each one gets a vector attached to it."
+  "text": "Okay, so text comes in and gets chopped into tokens — ||0.35 not letters, ||0.3 not words, ||0.3 something in between. ||0.4 And each one gets a vector attached to it."
  },
  {
   "id": "s029",
@@ -196,8 +236,8 @@
   "id": "s030",
   "speaker": "danny",
   "register": "base",
-  "text": "And they end up organized. ||0.45 Words that mean similar things ||0.35 end up pointing in similar directions, ||0.4 just because that helped it predict.",
-  "lead": 0.6
+  "lead": 0.5,
+  "text": "And they end up organized. ||0.45 Words that mean similar things ||0.35 end up pointing in similar directions, ||0.4 just because that helped it predict."
  },
  {
   "id": "s031",
@@ -212,23 +252,30 @@
   "text": "*Adds*. ||0.35 Not replaces. ||0.4 And that one detail is why you can stack ninety of these."
  },
  {
+  "id": "s032b",
+  "speaker": "danny",
+  "register": "base",
+  "lead": 0.5,
+  "text": "Does that honestly change anything? ||0.4 Adding instead of replacing?"
+ },
+ {
   "id": "s033",
   "speaker": "charlie",
   "register": "base",
-  "text": "Without it, the gradient has to fight its way back through every layer ||0.35 and it just dies on the way."
+  "text": "Completely. ||0.4 When it's learning, ||0.35 that correction has to travel all the way back down through every layer. ||0.45 If each one replaces what came before, ||0.4 the signal gets mangled on the way ||0.35 and it dies before it gets there."
  },
  {
   "id": "s034",
   "speaker": "danny",
   "register": "base",
-  "text": "With it there's a clean path all the way down.",
-  "lead": 0.5
+  "lead": 0.5,
+  "text": "With it there's a clean path all the way down."
  },
  {
   "id": "s035",
   "speaker": "charlie",
   "register": "base",
-  "text": "And normalization keeps the numbers from exploding as they go."
+  "text": "And there's a bit of housekeeping that stops the numbers blowing up as they travel. ||0.4 Normalization. ||0.35 That's all that word is."
  },
  {
   "id": "s036",
@@ -246,8 +293,8 @@
   "id": "s038",
   "speaker": "danny",
   "register": "base",
-  "text": "Can I flag one thing here? ||0.4 Because this surprised me. ||0.45 Everyone talks about attention like it's the whole model.",
-  "lead": 1.0
+  "lead": 0.6,
+  "text": "Can I flag one thing here? ||0.4 Because this surprised me. ||0.45 Everyone talks about attention like it's the whole model."
  },
  {
   "id": "s039",
@@ -262,35 +309,48 @@
   "text": "Attention is the clever part. ||0.4 It is *not* the big part."
  },
  {
+  "id": "s040b",
+  "speaker": "charlie",
+  "register": "base",
+  "text": "Alright. ||0.35 Attention itself. ||0.45 Start with the problem it solves. ||0.4 Take the word ||0.3 it ||0.3 in a sentence. ||0.4 On its own it means nothing. ||0.35 To understand it you have to go and find what it's pointing at."
+ },
+ {
+  "id": "s040c",
+  "speaker": "danny",
+  "register": "base",
+  "lead": 0.5,
+  "text": "So every word needs some way to go looking."
+ },
+ {
   "id": "s041",
   "speaker": "charlie",
   "register": "base",
-  "text": "Alright. ||0.35 Attention itself. ||0.5 Every token produces three things. ||0.4 A query — what am I looking for. ||0.35 A key — what do I have. ||0.35 And a value — what I'll hand over if you pick me."
+  "text": "Right. ||0.4 So every token puts out three things. ||0.4 A query — ||0.3 what am I looking for. ||0.35 A key — ||0.3 what do I have. ||0.35 And a value — ||0.3 what I'll hand over if you pick me."
  },
  {
   "id": "s042",
   "speaker": "charlie",
   "register": "base",
-  "text": "You dot every query against every key. ||0.4 That gives you a score for every pair. ||0.35 Softmax those, ||0.3 and now they're weights that add up to one."
+  "text": "You dot every query against every key — ||0.35 which, remember, ||0.3 is just asking how much two things agree. ||0.4 That gives you a score for every pair. ||0.35 Softmax those, ||0.3 and now they're weights that add up to one."
  },
  {
   "id": "s043",
   "speaker": "charlie",
   "register": "base",
-  "text": "Then each token takes a weighted blend of everyone's values."
+  "text": "Then each token takes a weighted blend of everyone's values. ||0.4 It has gone and fetched what it needed."
  },
  {
   "id": "s044",
   "speaker": "danny",
   "register": "lift",
-  "text": "And all of it happens *at once*! ||0.45 Every token, against every other token, ||0.35 in one matrix multiply. ||0.4 That's the thing the recurrent nets couldn't do.",
-  "lead": 0.7
+  "lead": 0.7,
+  "text": "And all of it happens *at once*! ||0.45 Every token, against every other token, ||0.35 in one matrix multiply. ||0.4 That's the thing the recurrent nets couldn't do."
  },
  {
   "id": "s045",
   "speaker": "charlie",
   "register": "base",
-  "text": "You do have to scale the scores down first, ||0.35 or the softmax saturates and the gradients vanish."
+  "text": "You do have to scale the scores down first, ||0.35 or the softmax goes lopsided ||0.3 and the learning stalls."
  },
  {
   "id": "s046",
@@ -302,33 +362,40 @@
   "id": "s047",
   "speaker": "danny",
   "register": "base",
-  "text": "Otherwise predicting the next word is a bit easy, ||0.35 since it's already read it.",
-  "lead": 0.5
+  "lead": 0.5,
+  "text": "Otherwise predicting the next word is a bit easy, ||0.35 since it's already read it."
  },
  {
   "id": "s048",
   "speaker": "charlie",
   "register": "base",
-  "text": "Run several of these in parallel and they specialize. ||0.45 One head tracks syntax. ||0.35 Another tracks what a pronoun refers to."
+  "text": "Run several of these side by side and they specialize. ||0.45 One head tracks grammar. ||0.35 Another tracks what a pronoun refers to."
  },
  {
   "id": "s049",
   "speaker": "danny",
   "register": "base",
-  "text": "And nobody assigned those. ||0.4 They just showed up because they were useful.",
-  "lead": 0.5
+  "lead": 0.5,
+  "text": "And nobody assigned those. ||0.4 They just showed up because they were useful."
  },
  {
   "id": "s050",
   "speaker": "charlie",
   "register": "base",
-  "text": "One catch: attention has no idea what order the words are in. ||0.45 To it, a sentence is a set."
+  "text": "One catch: ||0.35 attention has no idea what order the words are in. ||0.45 To it, ||0.3 a sentence is just a bag of words."
+ },
+ {
+  "id": "s050b",
+  "speaker": "danny",
+  "register": "base",
+  "lead": 0.5,
+  "text": "Which for a language model seems like a fairly big problem."
  },
  {
   "id": "s051",
   "speaker": "charlie",
-  "register": "hush",
-  "text": "So you rotate each direction by its position. ||0.5 And now the geometry itself is carrying the *word order*."
+  "register": "base",
+  "text": "So you turn each word's arrow a little further round ||0.35 depending on where it sits in the sentence. ||0.45 Words near each other end up pointing in similar directions — ||0.4 so the *word order* is carried by the arrows themselves. ||0.35 Nothing extra to store."
  },
  {
   "id": "s052",
@@ -346,27 +413,27 @@
   "id": "s054",
   "speaker": "charlie",
   "register": "base",
-  "text": "So you stop shuttling data back and forth to memory. ||0.4 You keep a tile of it in the fast stuff and do all the math right there."
+  "text": "So you stop shuttling data back and forth to memory. ||0.4 You keep a tile of it in the fast stuff ||0.35 and do all the math right there."
  },
  {
   "id": "s055",
   "speaker": "danny",
   "register": "base",
-  "text": "Same answer, ||0.3 a fraction of the traffic.",
-  "lead": 0.5
+  "lead": 0.5,
+  "text": "Same answer, ||0.3 a fraction of the traffic."
  },
  {
   "id": "s056",
   "speaker": "charlie",
   "register": "base",
-  "text": "And you let a group of queries share one set of keys, ||0.35 which shrinks what you have to hold onto while generating."
+  "text": "And you let a group of queries share one set of keys, ||0.35 which shrinks what you have to hold onto while it's generating."
  },
  {
   "id": "s057",
   "speaker": "danny",
   "register": "base",
-  "text": "Ten years of attention research, ||0.4 and almost all of it is about memory. ||0.4 Not about intelligence.",
-  "lead": 0.8
+  "lead": 0.8,
+  "text": "Ten years of attention research, ||0.4 and almost all of it is about memory. ||0.4 Not about intelligence."
  },
  {
   "id": "s058",
@@ -378,14 +445,14 @@
   "id": "s059",
   "speaker": "charlie",
   "register": "base",
-  "text": "And a router picks about sixteen of them for each token."
+  "text": "And a router picks about sixteen of them for each token. ||0.4 The rest don't run at all."
  },
  {
   "id": "s060",
   "speaker": "danny",
   "register": "lift",
-  "text": "Okay this is my favorite thing in the whole model. ||0.45 Two point eight trillion parameters, ||0.4 and roughly fifty billion of them actually wake up. ||0.5 The rest are just sitting there *asleep*!",
-  "lead": 1.0
+  "lead": 1.0,
+  "text": "Okay this is my favorite thing in the whole model. ||0.45 Two point eight trillion parameters, ||0.4 and roughly fifty billion of them actually wake up. ||0.5 The rest are just sitting there *asleep*!"
  },
  {
   "id": "s061",
@@ -415,14 +482,14 @@
   "id": "s065",
   "speaker": "danny",
   "register": "base",
-  "text": "Which is not the part anybody puts in the press release.",
-  "lead": 0.8
+  "lead": 0.8,
+  "text": "Which is not the part anybody puts in the press release."
  },
  {
   "id": "s066",
   "speaker": "charlie",
   "register": "base",
-  "text": "Then you train. ||0.4 Forward pass, ||0.3 measure the loss, ||0.3 backward pass, ||0.35 update every weight. ||0.4 Repeat for months."
+  "text": "Then you train. ||0.4 Make a prediction, ||0.3 measure how wrong it was, ||0.3 work out which direction helps, ||0.35 nudge every weight. ||0.4 Repeat for months."
  },
  {
   "id": "s067",
@@ -440,8 +507,8 @@
   "id": "s069",
   "speaker": "danny",
   "register": "base",
-  "text": "And the loss curve drops fast at the start ||0.4 and then just... ||0.35 crawls. ||0.4 For months. ||0.4 That's what the money buys.",
-  "lead": 0.7
+  "lead": 0.7,
+  "text": "And the loss curve drops fast at the start ||0.4 and then just... ||0.35 crawls. ||0.4 For months. ||0.4 That's what the money buys."
  },
  {
   "id": "s070",
@@ -465,8 +532,8 @@
   "id": "s073",
   "speaker": "danny",
   "register": "base",
-  "text": "It knows an absurd amount ||0.4 and has no idea it's supposed to be helpful.",
-  "lead": 0.6
+  "lead": 0.6,
+  "text": "It knows an absurd amount ||0.4 and has no idea it's supposed to be helpful."
  },
  {
   "id": "s074",
@@ -484,7 +551,7 @@
   "id": "s076",
   "speaker": "charlie",
   "register": "base",
-  "text": "So you fix that afterwards. ||0.4 First with examples — ||0.35 here's a question, here's a good answer, ||0.3 thousands of times."
+  "text": "So you fix that afterwards. ||0.4 First with examples — ||0.35 here's a question, ||0.3 here's a good answer, ||0.3 thousands of times."
  },
  {
   "id": "s077",
@@ -496,8 +563,8 @@
   "id": "s078",
   "speaker": "danny",
   "register": "base",
-  "text": "Which works. ||0.4 But now you're optimizing a stand-in for what people want, ||0.35 and stand-ins can be gamed.",
-  "lead": 0.8
+  "lead": 0.8,
+  "text": "Which works. ||0.4 But now you're optimizing a stand-in for what people want, ||0.35 and stand-ins can be gamed."
  },
  {
   "id": "s079",
@@ -521,8 +588,8 @@
   "id": "s082",
   "speaker": "danny",
   "register": "lift",
-  "text": "It starts checking its *own work*! ||0.45 Backing up, trying a different route — ||0.4 and nobody wrote a rule that said do that.",
-  "lead": 0.9
+  "lead": 0.9,
+  "text": "It starts checking its *own work*! ||0.45 Backing up, ||0.3 trying a different route — ||0.4 and nobody wrote a rule that said do that."
  },
  {
   "id": "s083",
@@ -534,8 +601,8 @@
   "id": "s084",
   "speaker": "danny",
   "register": "base",
-  "text": "Worth saying out loud. ||0.4 A lot of confident takes on that one.",
-  "lead": 0.7
+  "lead": 0.7,
+  "text": "Worth saying out loud. ||0.4 A lot of confident takes on that one."
  },
  {
   "id": "s085",
@@ -553,20 +620,20 @@
   "id": "s087",
   "speaker": "danny",
   "register": "base",
-  "text": "So that's why it streams at you word by word. ||0.4 That's not a UI choice.",
-  "lead": 0.6
+  "lead": 0.6,
+  "text": "So that's why it streams at you word by word. ||0.4 That's not a design choice. ||0.35 That's the machine."
  },
  {
   "id": "s088",
   "speaker": "charlie",
   "register": "base",
-  "text": "And you cache the keys and values instead of recomputing the whole history every step. ||0.4 That cache is the only reason this is affordable."
+  "text": "And it keeps the keys and values from earlier ||0.35 instead of recomputing the whole history every step. ||0.4 That cache is the only reason this is affordable."
  },
  {
   "id": "s089",
   "speaker": "charlie",
   "register": "base",
-  "text": "Last piece — changing how it behaves without retraining it."
+  "text": "Last piece — ||0.35 changing how it behaves without retraining it."
  },
  {
   "id": "s090",
@@ -578,8 +645,8 @@
   "id": "s091",
   "speaker": "danny",
   "register": "lift",
-  "text": "And at the far end of that you're tuning thirteen numbers. ||0.5 *Thirteen!* ||0.4 Out of two point eight trillion.",
-  "lead": 0.9
+  "lead": 0.9,
+  "text": "And at the far end of that you're tuning thirteen numbers. ||0.5 *Thirteen!* ||0.4 Out of two point eight trillion."
  },
  {
   "id": "s092",
@@ -591,21 +658,21 @@
   "id": "s093",
   "speaker": "danny",
   "register": "base",
-  "text": "Which is exactly what a token already was.",
-  "lead": 0.5
+  "lead": 0.5,
+  "text": "Which is exactly what a token already was."
  },
  {
   "id": "s094",
   "speaker": "charlie",
   "register": "base",
-  "text": "So the model doesn't need to know the difference. ||0.4 Audio, ||0.3 video, ||0.3 same trick — ||0.35 get it into vectors and attention doesn't care where it came from."
+  "text": "So the model doesn't need to know the difference. ||0.4 Audio, ||0.3 video, ||0.3 same trick — ||0.35 get it into vectors ||0.35 and attention doesn't care where it came from."
  },
  {
   "id": "s095",
   "speaker": "danny",
   "register": "base",
-  "text": "That's the part that stuck with me, honestly. ||0.45 There's no separate image module. ||0.4 It's the same machinery all the way through.",
-  "lead": 0.8
+  "lead": 0.8,
+  "text": "That's the part that stuck with me, honestly. ||0.45 There's no separate image module. ||0.4 It's the same machinery all the way through."
  },
  {
   "id": "s096",
@@ -617,7 +684,7 @@
   "id": "s097",
   "speaker": "danny",
   "register": "base",
-  "text": "Two point eight trillion numbers. ||0.5 And now you know what every one of them is for.",
-  "lead": 0.9
+  "lead": 0.9,
+  "text": "Two point eight trillion numbers. ||0.5 And now you know what every one of them is for."
  }
 ]
