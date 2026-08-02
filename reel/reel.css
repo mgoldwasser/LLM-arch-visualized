@@ -278,6 +278,17 @@ body.capturing .scene-step .step-card {
 body.capturing .shot-focus .scene-step.active .step-card { opacity: 1 !important; }
 body.capturing .step-card .step-n { font-size: 1.05rem; letter-spacing: 0.18em; }
 
-/* Standalone figures — the ones outside scenes — get the same width. */
-body.capturing .fig.measure, body.capturing .widget.measure { max-width: 74rem; }
-body.capturing .fig figcaption { font-size: 0.9rem; opacity: 0.75; }
+/* Standalone figures — the ones outside scenes — get the same width. The
+   book's .measure cap is a reading width; on a slide it is a straitjacket. */
+body.capturing .slide-focus.fig,
+body.capturing .slide-focus.widget,
+body.capturing .slide-focus .fig,
+body.capturing .slide-focus .widget {
+  width: min(74rem, 94vw);
+  max-width: none;
+}
+body.capturing .fig figcaption {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  max-width: 64rem;
+}

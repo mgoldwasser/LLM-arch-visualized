@@ -282,10 +282,19 @@ function installCaptureApi() {
         ? focused
         : focused.querySelector('.scene-sticky > *, .pin-stick > *');
       if (!subject) return;
-      const r = subject.getBoundingClientRect();
-      if (!r.width || !r.height) return;
-      const s = Math.min(1.9, (0.94 * innerWidth) / r.width,
-                         (0.86 * innerHeight) / r.height);
+      /* Scale from the ARTWORK's box, not the figure's: the caption block
+         is tall and text-height, and letting it drive the fit leaves the
+         drawing small in the frame — which is the whole complaint. The
+         caption rides along at the artwork's scale, and a second cap keeps
+         the figure as a whole inside the frame so it is never cropped. */
+      const art = subject.querySelector('.fig-canvas') || subject;
+      const a = art.getBoundingClientRect();
+      const f = subject.getBoundingClientRect();
+      if (!a.width || !a.height || !f.height) return;
+      const s = Math.min(2.2,
+                         (0.94 * innerWidth) / a.width,
+                         (0.90 * innerHeight) / a.height,
+                         (0.96 * innerHeight) / f.height);
       if (s > 1.02) {
         subject.style.transformOrigin = '50% 50%';
         subject.style.transform = `scale(${s.toFixed(4)})`;
