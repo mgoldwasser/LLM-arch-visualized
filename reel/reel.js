@@ -154,11 +154,13 @@ function buildShots() {
   const docY = (node) => node.getBoundingClientRect().top + window.scrollY;
   const shots = [];
 
+  const els = [];                // parallel to shots; becomes data-slide tags
   const ranges = scrollRanges();
   ranges.forEach((r, i) => { r.el.dataset.shotId = String(i); });
   for (const [i, r] of ranges.entries()) {
     const sec = r.el.closest('section.chapter');
     const steps = r.el.querySelectorAll('.scene-step').length;
+    els.push(r.el);
     shots.push({
       kind: 'anim',
       shotId: i,
@@ -183,6 +185,7 @@ function buildShots() {
   // Chapter cards, and the hero as the opening title.
   for (const head of document.querySelectorAll('.hero, .ch-head')) {
     const sec = head.closest('section.chapter');
+    els.push(head);
     shots.push({
       kind: 'title',
       at: docY(head),
@@ -203,6 +206,7 @@ function buildShots() {
   for (const fig of document.querySelectorAll('.fig, .widget')) {
     if (animated.has(fig)) continue;
     const h = fig.getBoundingClientRect().height;
+    els.push(fig);
     shots.push({
       kind: 'still',
       at: docY(fig),
@@ -215,8 +219,15 @@ function buildShots() {
   }
 
   // Document order — the book's order is the argument's order.
-  shots.sort((a, b) => a.at - b.at);
-  return shots;
+  const order = shots.map((_, i) => i).sort((a, b) => shots[a].at - shots[b].at);
+  /* Every shot's element learns its place in the final list, so the grabber
+     can name a slide by shot index and slide mode can show that element
+     alone. The tag survives re-calls because it is overwritten, not
+     accumulated. */
+  order.forEach((srcIdx, slideIdx) => {
+    els[srcIdx].dataset.slide = String(slideIdx);
+  });
+  return order.map((i) => shots[i]);
 }
 
 /* ---- capture API --------------------------------------------------------- */
@@ -239,12 +250,20 @@ function installCaptureApi() {
   window.__reel = {
     height: () => maxY(),
     shots: buildShots,
-    /* Which shot is being filmed. Only this scene's step label is shown —
-       see reel.css: labels are fixed to the frame, so every scene would
-       otherwise draw its last-active label in the same place. */
-    focus(shotId) {
-      for (const t of document.querySelectorAll('.scene-track')) {
-        t.classList.toggle('shot-focus', t.dataset.shotId === String(shotId));
+    /* Which shot is being filmed. Slide mode: the whole article is invisible
+       except the focused shot's element (see reel.css), so a frame is one
+       centred subject on a clean stage — never the page around it. The id
+       here is the SHOT LIST index, stamped as data-slide by buildShots.
+       shot-focus additionally gates the step label, which is fixed to the
+       frame and would otherwise show every scene's last-active label at
+       once. */
+    focus(slideIdx) {
+      for (const n of document.querySelectorAll('[data-slide]')) {
+        const on = n.dataset.slide === String(slideIdx);
+        n.classList.toggle('slide-focus', on);
+        if (n.classList.contains('scene-track') || n.classList.contains('pin-track')) {
+          n.classList.toggle('shot-focus', on);
+        }
       }
     },
     /* The virtual clock. Anything in the book that animates on wall time reads

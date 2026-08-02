@@ -26,6 +26,9 @@ seconds sum (per section) to the audio duration exactly.
 import argparse
 import json
 import pathlib
+import shutil
+import subprocess
+import tempfile
 
 import numpy as np
 import soundfile as sf
@@ -33,6 +36,27 @@ import soundfile as sf
 NOMINAL_WORDS = 12          # weight of a shot no turn is mapped to
 SNAP_WINDOW = 3.0           # how far a boundary may move to find a silence
 MIN_SHOT = 2.2              # never cut faster than this
+
+# Absorb time, by what kind of shot is arriving. The voice runs quick and
+# UNIFORM; the room to take a figure in is inserted as real silence at the
+# shot boundary instead of being smeared across the delivery as slowness —
+# which is the difference between a lecturer pausing at a new slide and a
+# lecturer who just talks slowly.
+SETTLE = {"anim": 1.0, "still": 0.8, "title": 0.5}
+LEAD = 0.4                  # breath at the top of every section
+
+
+def retempo(wav, sr, tempo):
+    """Uniform speed-up, pitch untouched (ffmpeg atempo)."""
+    if abs(tempo - 1.0) < 0.01 or not shutil.which("ffmpeg"):
+        return wav
+    with tempfile.TemporaryDirectory() as d:
+        a, b = f"{d}/a.wav", f"{d}/b.wav"
+        sf.write(a, wav, sr)
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", a,
+                        "-filter:a", f"atempo={tempo:.3f}", b], check=True)
+        out, _ = sf.read(b)
+    return out.astype(np.float32)
 
 
 def silences(wav, sr, floor=0.010, min_len=0.18):
@@ -60,16 +84,34 @@ def main():
     ap.add_argument("--script", required=True)
     ap.add_argument("--audio", required=True)
     ap.add_argument("--out", default="timing.json")
+    ap.add_argument("--tempo", type=float, default=1.0,
+                    help="speed the voice up uniformly before cutting")
+    ap.add_argument("--outaudio",
+                    help="write retimed section wavs (tempo + settle "
+                         "silences) here; mux against THESE, not the originals")
     args = ap.parse_args()
 
     sections = json.loads(pathlib.Path(args.script).read_text())
+    shots_meta = None
+    shots_path = pathlib.Path(args.out).parent / "shots.json"
+    if shots_path.exists():
+        shots_meta = json.loads(shots_path.read_text())
     audio = pathlib.Path(args.audio)
+    outaudio = pathlib.Path(args.outaudio) if args.outaudio else None
+    if outaudio:
+        outaudio.mkdir(parents=True, exist_ok=True)
     timing, report = [], []
+
+    def kind_of(shot_idx):
+        if shots_meta and 0 <= shot_idx < len(shots_meta):
+            return shots_meta[shot_idx].get("kind", "anim")
+        return "anim"
 
     for sec in sections:
         wav, sr = sf.read(audio / f"{sec['section']}.wav")
         if wav.ndim > 1:
             wav = wav.mean(1)
+        wav = retempo(wav.astype(np.float32), sr, args.tempo)
         dur = len(wav) / sr
         cuts = silences(wav, sr)
 
@@ -93,8 +135,20 @@ def main():
                           if near else ideal)
         bounds.append(dur)
 
+        # Rebuild the section's audio with the settle silences IN it, so the
+        # video duration and the audio duration grow in lockstep: shot k's
+        # screen time = its settle pause + its share of speech.
+        pieces, k = [], 0
         for shot, (a, b) in zip(sec["shots"], zip(bounds, bounds[1:])):
-            timing.append({"shot": shot, "seconds": round(max(b - a, MIN_SHOT), 3)})
+            settle = LEAD if k == 0 else SETTLE.get(kind_of(shot), 1.0)
+            pieces.append(np.zeros(int(settle * sr), dtype=np.float32))
+            pieces.append(wav[int(a * sr): int(b * sr)])
+            timing.append({"shot": shot,
+                           "seconds": round(max(b - a + settle, MIN_SHOT), 3)})
+            k += 1
+        if outaudio:
+            sf.write(outaudio / f"{sec['section']}.wav",
+                     np.concatenate(pieces), sr)
         report.append(f"{sec['section']:16} {dur:6.1f}s  {len(sec['shots'])} shots")
 
     pathlib.Path(args.out).write_text(json.dumps(timing, indent=1) + "\n")

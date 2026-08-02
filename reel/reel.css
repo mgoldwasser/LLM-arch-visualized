@@ -187,8 +187,63 @@ body.capturing .scene-cols { display: flex; flex-direction: column; align-items:
 body.capturing .scene-cols .scene-sticky { order: -1; }
 body.capturing .scene-track { max-width: 74rem; margin-left: auto; margin-right: auto; }
 
-body.capturing .scene-sticky { top: 13vh; }
-body.capturing .scene-sticky .fig-canvas { margin: 0 auto; }
+/* ---- slide mode -----------------------------------------------------------
+
+   A video frame should be one subject on a clean stage. Scrolling the real
+   page puts the NEIGHBORHOOD on screen too — the previous figure leaving,
+   the next chapter's title arriving, prose cut mid-word at the frame edge —
+   which reads as "someone is scrolling a website", not as a slideshow.
+
+   So in capture mode the entire article is invisible, and __reel.focus()
+   reveals exactly one element: the shot being filmed. visibility (not
+   display) so the document's geometry — which the whole capture plan was
+   measured against — does not move by a pixel.
+
+   Every sticky figure is also lifted out of the flow onto a fixed, centred,
+   full-viewport stage. This applies to ALL tracks, not just the focused one:
+   if only the focused track changed shape, the document would reflow at
+   every focus change and the measured shot positions would go stale. All
+   tracks change uniformly, once, before anything is measured. The scroll
+   keeps driving the animation exactly as before — the track still spans its
+   range in the document — the figure just no longer travels with it. */
+/* Hide every element OUTSIDE the focused subtree, and only those: a blanket
+   `.article * { visibility: hidden }` would also defeat the visibility
+   attributes scenes set on their own internals (moe's swap, the five-stage
+   walk), which must keep working inside the focused shot. The focused root
+   is then re-shown by rule — which also wins over its hidden ancestors,
+   because visibility, unlike display, lets a visible descendant surface from
+   a hidden parent. Everything inside it just inherits. */
+body.capturing .article :not(.slide-focus):not(.slide-focus *) { visibility: hidden; }
+body.capturing .article { visibility: hidden; }
+body.capturing .slide-focus { visibility: visible; }
+
+body.capturing .scene-sticky,
+body.capturing .pin-stick {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  padding: 6vh 0 4vh;
+}
+
+/* On the fixed stage a figure has no column to fill, so without a width it
+   shrinks to its intrinsic size — a thumbnail lost in the frame. */
+body.capturing .scene-sticky .fig-canvas,
+body.capturing .scene-sticky .fig,
+body.capturing .scene-sticky .widget,
+body.capturing .pin-stick .fig,
+body.capturing .pin-stick .widget {
+  width: min(74rem, 94vw);
+  margin: 0 auto;
+}
+
+/* Titles are slides now, not headings passing by — set them like one. */
+body.capturing .ch-head,
+body.capturing .hero {
+  align-items: center;
+  text-align: center;
+}
 
 /* The label is a title, not a card travelling past the artwork, so it is
    fixed to the frame rather than positioned in the document. Sticky was the

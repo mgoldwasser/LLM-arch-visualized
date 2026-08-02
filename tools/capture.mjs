@@ -210,10 +210,12 @@ if (OPT.timing) {
 const FADE = Math.round(OPT.fadeSec * OPT.fps);   // frames of dissolve per end
 const plan = [];
 
-for (const shot of shots) {
+const sliceBase = Math.floor(allShots.length * OPT.from);
+for (const [si, shot] of shots.entries()) {
   const frames = Math.max(2 * FADE + 2, Math.round(shot.seconds * OPT.fps));
-  // The first frame of each shot carries the focus change; see __reel.focus.
-  const focusId = shot.kind === 'anim' ? shot.shotId : -1;
+  /* The first frame of each shot carries the focus change. Focus is by SHOT
+     LIST index now — every kind of shot is a slide, not just the scenes. */
+  const focusId = sliceBase + si;
   for (let f = 0; f < frames; f++) {
     /* Dissolve through the page background at both ends. Because the fade is
        an opacity the page applies, one continuous frame stream comes out —
