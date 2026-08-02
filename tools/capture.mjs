@@ -211,6 +211,36 @@ const FADE = Math.round(OPT.fadeSec * OPT.fps);   // frames of dissolve per end
 const plan = [];
 
 const sliceBase = Math.floor(allShots.length * OPT.from);
+
+/* ---- calibration: measure the ink, fit every slide, audit the fill -------
+
+   Before filming, visit each shot at its midpoint and let the page measure
+   what is actually drawn (see __reel.calibrate). The stored fits are what
+   focus() applies during the run; the fill ratios printed here are the
+   programmatic answer to "is this slide using the frame?" — anything under
+   0.45 is listed so a composition problem is a line in the log, not a
+   surprise at minute four of the finished video. */
+if (!OPT.dryRun && !OPT.dumpShots) {
+  const fills = [];
+  for (const [si, shot] of shots.entries()) {
+    const y = shot.kind === 'anim' ? (shot.from + shot.to) / 2 : shot.y;
+    await page.eval(`window.__reel.focus(${sliceBase + si})`);
+    await page.eval(`window.__reel.seek(${y}, 0, 1)`);
+    const rep = await page.eval(
+      `JSON.stringify(window.__reel.calibrate(${sliceBase + si}))`)
+      .then(JSON.parse);
+    fills.push({ ...rep, kind: shot.kind, chapter: shot.chapter });
+  }
+  const low = fills.filter((f) => f.fill != null && f.fill < 0.45);
+  const avg = fills.filter((f) => f.fill != null)
+    .reduce((a, f, _, arr) => a + f.fill / arr.length, 0);
+  log(`calibrated ${fills.length} slides · mean fill ${(avg * 100).toFixed(0)}%`);
+  for (const f of low) {
+    log(`  low fill: slide ${f.slide} (${f.chapter} ${f.kind}) ` +
+        `${(f.fill * 100).toFixed(0)}% at scale ${f.scale}`);
+  }
+}
+
 for (const [si, shot] of shots.entries()) {
   const frames = Math.max(2 * FADE + 2, Math.round(shot.seconds * OPT.fps));
   /* The first frame of each shot carries the focus change. Focus is by SHOT

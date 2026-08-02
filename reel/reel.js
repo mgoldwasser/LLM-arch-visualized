@@ -236,6 +236,56 @@ function buildShots() {
    path: this jumps to an absolute position and resolves once the scroll engine
    has painted that position, so a slow machine yields the same frames as a
    fast one — it only takes longer. */
+/* The element that actually gets scaled on the slide stage. */
+function subjectOf(focused) {
+  return focused.matches('.fig, .widget')
+    ? focused
+    : focused.querySelector('.scene-sticky > *, .pin-stick > *');
+}
+
+/* Union of everything DRAWN inside root, in viewport coordinates: each
+   SVG's getBBox() pushed through its screen matrix, plus the rect of every
+   element that directly contains text. This is the ink, as distinct from
+   the boxes — layout containers and padded canvases don't count. */
+function contentBox(root) {
+  let out = null;
+  const push = (l, t, r, b) => {
+    if (r - l < 2 || b - t < 2) return;
+    out = out
+      ? { left: Math.min(out.left, l), top: Math.min(out.top, t),
+          right: Math.max(out.right, r), bottom: Math.max(out.bottom, b) }
+      : { left: l, top: t, right: r, bottom: b };
+  };
+  for (const svg of root.querySelectorAll('svg')) {
+    try {
+      const bb = svg.getBBox();
+      const m = svg.getScreenCTM();
+      if (!m || !bb.width || !bb.height) continue;
+      const pts = [[bb.x, bb.y], [bb.x + bb.width, bb.y],
+                   [bb.x, bb.y + bb.height], [bb.x + bb.width, bb.y + bb.height]]
+        .map(([x, y]) => [m.a * x + m.c * y + m.e, m.b * x + m.d * y + m.f]);
+      push(Math.min(...pts.map((p) => p[0])), Math.min(...pts.map((p) => p[1])),
+           Math.max(...pts.map((p) => p[0])), Math.max(...pts.map((p) => p[1])));
+    } catch { /* detached or unrendered svg — contributes nothing */ }
+  }
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+  for (let el = walker.nextNode(); el; el = walker.nextNode()) {
+    if (el.closest('svg')) continue;
+    if (getComputedStyle(el).visibility === 'hidden') continue;
+    const hasText = [...el.childNodes].some(
+      (n) => n.nodeType === 3 && n.textContent.trim());
+    // Form controls paint without text nodes (the dial's sliders).
+    if (!hasText && !el.matches('input, img, video, canvas')) continue;
+    const r = el.getBoundingClientRect();
+    push(r.left, r.top, r.right, r.bottom);
+  }
+  if (!out) return null;
+  return { left: out.left, top: out.top,
+           width: out.right - out.left, height: out.bottom - out.top };
+}
+
+const fitBySlide = new Map();
+
 function installCaptureApi() {
   document.body.classList.add('capturing');
   /* Force dark. The figure canvases are dark in both themes, so on the light
@@ -278,28 +328,63 @@ function installCaptureApi() {
         delete n.dataset.fitted;
       }
       if (!focused) return;
-      const subject = focused.matches('.fig, .widget')
-        ? focused
-        : focused.querySelector('.scene-sticky > *, .pin-stick > *');
+      const subject = subjectOf(focused);
       if (!subject) return;
-      /* Scale from the ARTWORK's box, not the figure's: the caption block
-         is tall and text-height, and letting it drive the fit leaves the
-         drawing small in the frame — which is the whole complaint. The
-         caption rides along at the artwork's scale, and a second cap keeps
-         the figure as a whole inside the frame so it is never cropped. */
-      const art = subject.querySelector('.fig-canvas') || subject;
-      const a = art.getBoundingClientRect();
+      /* Calibrated fit if the grabber measured this slide (see calibrate);
+         otherwise a conservative CSS-box fit as the fallback. */
+      const fit = fitBySlide.get(String(slideIdx));
+      subject.dataset.fitted = '1';
+      subject.style.transformOrigin = '50% 50%';
+      if (fit) {
+        subject.style.transform =
+          `translate(${fit.dx.toFixed(1)}px, ${fit.dy.toFixed(1)}px) ` +
+          `scale(${fit.s.toFixed(4)})`;
+        return;
+      }
+      const a = (subject.querySelector('.fig-canvas') || subject)
+        .getBoundingClientRect();
       const f = subject.getBoundingClientRect();
       if (!a.width || !a.height || !f.height) return;
       const s = Math.min(2.2,
                          (0.94 * innerWidth) / a.width,
                          (0.90 * innerHeight) / a.height,
                          (0.96 * innerHeight) / f.height);
-      if (s > 1.02) {
-        subject.style.transformOrigin = '50% 50%';
-        subject.style.transform = `scale(${s.toFixed(4)})`;
-        subject.dataset.fitted = '1';
-      }
+      if (s > 1.02) subject.style.transform = `scale(${s.toFixed(4)})`;
+    },
+
+    /* Measure how much of the frame the focused slide's INK actually
+       covers, and derive the transform that centres it at target size.
+       CSS boxes lie about this — a canvas can be frame-sized while its
+       drawing huddles in a corner — so the measurement unions the real
+       geometry: every SVG's getBBox() mapped to screen space, plus every
+       text-bearing element's rect. Called by the grabber once per shot,
+       seeked to the shot's midpoint, BEFORE filming; focus() then applies
+       the stored result on every frame of that shot. Returns the audit
+       row so the grabber can report fill ratios with no extra pass. */
+    calibrate(slideIdx) {
+      const focused = document.querySelector('.slide-focus');
+      const subject = focused && subjectOf(focused);
+      if (!subject) return { slide: slideIdx, fill: null };
+      subject.style.transform = '';
+      const box = contentBox(subject);
+      if (!box) return { slide: slideIdx, fill: null };
+      const s = Math.min(2.6,
+                         (0.92 * innerWidth) / box.width,
+                         (0.88 * innerHeight) / box.height);
+      // Where the content's centre lands after scaling about the subject's
+      // centre — translate the difference away so the INK is centred.
+      const sub = subject.getBoundingClientRect();
+      const cx = sub.left + sub.width / 2, cy = sub.top + sub.height / 2;
+      const scaledX = cx + (box.left + box.width / 2 - cx) * s;
+      const scaledY = cy + (box.top + box.height / 2 - cy) * s;
+      const fit = { s: Math.max(s, 0.5),
+                    dx: innerWidth / 2 - scaledX,
+                    dy: 0.485 * innerHeight - scaledY };
+      fitBySlide.set(String(slideIdx), fit);
+      const fill = (box.width * s * box.height * s)
+        / (innerWidth * innerHeight);
+      return { slide: slideIdx, fill: Math.round(fill * 100) / 100,
+               scale: Math.round(fit.s * 100) / 100 };
     },
     /* The virtual clock. Anything in the book that animates on wall time reads
        this instead while capturing, so "frame 900" means the same picture on
