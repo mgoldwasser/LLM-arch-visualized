@@ -36,7 +36,10 @@ document.body.classList.add(
    capture run would produce frames of different scenes than it measured. So
    the whole book is built up front, serialized, before the reel starts. */
 async function mountAll() {
-  const skip = new Set(['epilogue']);          // its content is prose and links
+  /* Epilogue is included for its pinned timeline — the closing shot of the
+     video. Its prose and link paragraphs mount too, but the shot list only
+     picks up titles, scenes and figures, so they cost nothing on screen. */
+  const skip = new Set();
   for (const c of CHAPTERS) {
     if (skip.has(c.id)) continue;
     const ctx = { id: c.id, num: chNum(c.id), title: c.title };

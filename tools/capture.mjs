@@ -29,6 +29,7 @@
 */
 
 import { spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 /* ---- arguments ----------------------------------------------------------- */
@@ -51,6 +52,7 @@ const OPT = {
   quality: Number(arg('quality', 92)),
   dryRun: argv.includes('--dryRun'),
   dumpShots: argv.includes('--dumpShots'),
+  timing: arg('timing', null),              // JSON: [{shot, seconds}] from audio
   chrome: arg('chrome', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'),
 };
 
@@ -190,6 +192,20 @@ const allShots = await page.eval('JSON.stringify(window.__reel.shots())')
 const shots = allShots.slice(
   Math.floor(allShots.length * OPT.from),
   Math.ceil(allShots.length * OPT.to));
+
+/* --timing replaces the authored per-shot durations with measured ones —
+   each entry is {shot: <index into the full list>, seconds}. This is how the
+   video ends up cut to the narration instead of the narration chasing the
+   video. Missing entries keep their authored length. */
+if (OPT.timing) {
+  const timed = JSON.parse(readFileSync(OPT.timing, 'utf8'));
+  const bySlot = new Map(timed.map((t) => [t.shot, t.seconds]));
+  const base = Math.floor(allShots.length * OPT.from);
+  shots.forEach((s, i) => {
+    const want = bySlot.get(base + i);
+    if (want != null) s.seconds = want;
+  });
+}
 
 const FADE = Math.round(OPT.fadeSec * OPT.fps);   // frames of dissolve per end
 const plan = [];

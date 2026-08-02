@@ -87,10 +87,18 @@ REGISTERS = {
 # Identity therefore no longer rests on rate at all. It rests on timbre — the
 # two references differ by ~300 Hz of spectral rolloff — and on who tells
 # versus who reacts, which the script controls.
+#
+# These are calibrated against the RENDERED output, not against the reference
+# clips, because Chatterbox does not read at its reference's pace. The scene-
+# led references measure 207 and 243 wpm, which would suggest 1.30 and 1.11 —
+# but rendered through exaggeration 0.70 they came out at 295 and 354. So the
+# numbers below are 270 divided by what was actually measured coming out.
+# Re-measure and re-derive these whenever the references or REGISTERS change;
+# a reference's own pace does not predict them.
 TARGET_WPM = 270
 SPEAKER_STYLE = {
-    "danny":   dict(exag_offset=0.0, tempo=1.28),
-    "charlie": dict(exag_offset=0.0, tempo=1.18),
+    "danny":   dict(exag_offset=0.0, tempo=1.17),   # was 1.28 -> rendered 295
+    "charlie": dict(exag_offset=0.0, tempo=0.90),   # was 1.18 -> rendered 354
 }
 
 # Emphasis: *word* or *short phrase*. Rendered as its own segment, slowed and
