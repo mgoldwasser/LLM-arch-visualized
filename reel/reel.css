@@ -245,6 +245,27 @@ body.capturing .hero {
   text-align: center;
 }
 
+/* The opening slide fills the frame instead of huddling in its top half:
+   full viewport height, content vertically centred and scaled up to poster
+   size. It is the first frame anyone sees — it should look composed, not
+   like the top of a web page. */
+body.capturing .hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.4rem;
+}
+body.capturing .hero h1 { font-size: clamp(3rem, 5.2vw, 5.6rem); }
+body.capturing .hero .kicker { font-size: 1.05rem; letter-spacing: 0.22em; }
+body.capturing .hero .hero-stats {
+  transform: scale(1.35);
+  transform-origin: 50% 0;
+  margin-bottom: 2.2rem;
+  justify-content: center;   /* the wrapped fifth stat centres, not strands */
+}
+body.capturing .hero .fig { margin-top: 3.5rem; }
+
 /* The label is a title, not a card travelling past the artwork, so it is
    fixed to the frame rather than positioned in the document. Sticky was the
    obvious choice and the wrong one: a sticky card is clamped inside its own
