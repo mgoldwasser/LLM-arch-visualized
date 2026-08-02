@@ -1,11 +1,19 @@
 [
  {"section": "s01-open", "shots": [0, 1, 2, 3], "turns": [
   {"speaker": "charlie", "shot": 0,
-   "text": "Okay so, the model we're gonna take apart today is called Kimi K3, and it has two point eight trillion numbers in it. And right now that number means nothing — it's just a big number. The point of this whole thing is that by the end, it will mean something. You'll know where all of them live, and what each group of them is doing."},
+   "text": "Hey — welcome in. I'm Charlie. I've spent the last fifteen years building machine learning systems out in the Bay Area... and this is the video I've been wanting to make that entire time."},
+  {"speaker": "danny", "shot": 0,
+   "text": "And I'm Danny. Grew up in Ohio, I work in product, and I am decidedly not a machine learning guy. My whole job today is to stop him every time he says something that sounds like math. That's the deal we made."},
+  {"speaker": "charlie", "shot": 1,
+   "text": "It's a good deal. So — why are we recording this now? Because something genuinely changed in the last couple of years. AI stopped just autocompleting text... and started doing things that weren't supposed to happen yet. Solving math problems no human had ever solved. Reasoning through entire codebases. Finding security exploits nobody had found before."},
   {"speaker": "danny", "shot": 1,
-   "text": "Yeah. And the honest pitch for sticking around is — it's so much simpler than that number makes it sound. Not easy. Simple. There's a difference, and it's the good kind."},
+   "text": "And here's what's been frustrating about that. The models doing it are locked behind APIs. You can send them a question and get an answer back... and that's it. Nobody outside a handful of labs gets to see how the thing actually works."},
+  {"speaker": "charlie", "shot": 1,
+   "text": "Which is why today exists. Kimi K3 is the first open-weights model at that level — the first time a machine from this new era is just... sitting on disk, where anyone can open it up. So that's what we're going to do. Take it apart, piece by piece, until there's no mystery left in it."},
+  {"speaker": "danny", "shot": 1,
+   "text": "And the honest pitch for sticking around — it's so much simpler than you'd expect. Not easy. Simple. There's a difference, and it's the good kind."},
   {"speaker": "charlie", "shot": 2,
-   "text": "So let's start with the job, because the job is the whole thing. You give the model some text. It hands back a probability for every token that could come next. That's it. That's the entire interface."},
+   "text": "So let's start with the job, because the job is the whole thing. You give the model some text. It hands back a probability for every token that could come next. That's it. That's the entire interface — the thing that finds novel exploits and the thing that autocompletes your email have exactly this one contract."},
   {"speaker": "charlie", "shot": 3,
    "text": "Watch the loop. Text goes in. One forward pass through the machine. Out comes a distribution — every possible next token, each with a probability. Pick one. Append it to the text. And go again."},
   {"speaker": "danny", "shot": 3,
@@ -283,8 +291,10 @@
   {"speaker": "danny", "shot": 116,
    "text": "Which tells you where the next round comes from, doesn't it? Every open frontier we met tonight is still open. Usable context versus claimed context. Verifiable rewards for things that aren't math or code — that one's enormous. And whether the reasoning is real or retrieved... someone has to actually settle that."},
   {"speaker": "charlie", "shot": 116,
-   "text": "And whoever settles it will do it with the pieces you now own. Because that was the deal at the start — that the number would mean something. Two point eight trillion numbers. A dot product, a bend, a hill... run at civilization scale."},
+   "text": "And whoever settles it will do it with the pieces you now own. Because that's what this machine turned out to be, all the way down. A dot product, a bend, a hill... run at civilization scale."},
   {"speaker": "danny", "shot": 116,
-   "text": "And now you know what every one of them is for."}
+   "text": "No mystery left. Just arithmetic — an enormous, beautiful amount of it."},
+  {"speaker": "charlie", "shot": 116,
+   "text": "This video was written and produced by Matt Goldwasser. If it made something click for you... pass it along. Thanks for watching."}
  ]}
 ]

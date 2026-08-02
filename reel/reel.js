@@ -258,12 +258,38 @@ function installCaptureApi() {
        frame and would otherwise show every scene's last-active label at
        once. */
     focus(slideIdx) {
+      let focused = null;
       for (const n of document.querySelectorAll('[data-slide]')) {
         const on = n.dataset.slide === String(slideIdx);
         n.classList.toggle('slide-focus', on);
+        if (on) focused = n;
         if (n.classList.contains('scene-track') || n.classList.contains('pin-track')) {
           n.classList.toggle('shot-focus', on);
         }
+      }
+      /* Fit the subject to the frame. Figures are drawn at reading size —
+         right for a page, small for a 1920px slide with nothing else on it.
+         Scale is measured per shot from live geometry (identical every run,
+         so still deterministic) and applied as a transform, which changes
+         nothing about layout or the scroll ranges the plan was measured
+         against. Titles are excluded: type has its own size logic. */
+      for (const n of document.querySelectorAll('[data-fitted]')) {
+        n.style.transform = '';
+        delete n.dataset.fitted;
+      }
+      if (!focused) return;
+      const subject = focused.matches('.fig, .widget')
+        ? focused
+        : focused.querySelector('.scene-sticky > *, .pin-stick > *');
+      if (!subject) return;
+      const r = subject.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      const s = Math.min(1.9, (0.94 * innerWidth) / r.width,
+                         (0.86 * innerHeight) / r.height);
+      if (s > 1.02) {
+        subject.style.transformOrigin = '50% 50%';
+        subject.style.transform = `scale(${s.toFixed(4)})`;
+        subject.dataset.fitted = '1';
       }
     },
     /* The virtual clock. Anything in the book that animates on wall time reads
